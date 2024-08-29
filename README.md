@@ -71,7 +71,7 @@ If you encounter any bugs or have suggestions for improvements, please create an
 4. Fill out the template with as much detail as possible.
 5. Submit the issue.
 
-## Screenshots
+## Screenshot
 
 ![TwinSession_LanScreenshot](https://github.com/user-attachments/assets/dc5bb67f-4d5d-4246-8b4a-b2ef5922beea)
 
