@@ -14,7 +14,7 @@ This mod is built for Minecraft version 1.21 & 1.21.1 and is build using the fol
 
 ## Versions
 
-[//]: # (- **Current Version &#40;1.21 & 1.21.1&#41;**: [Download v1.0.6-mc.1.21.1]&#40;https://github.com/lilfish/Fabric_OfflinePlayersReworked/releases/tag/v1.0.6-mc.1.21.1&#41;)
+- **Current Version (1.21 & 1.21.1)**: [Download v1.0.0-mc.1.21.1](https://github.com/TheMisterFish/Fabric_TwinSession/releases/tag/v1.0.0-mc.1.21.1)
 
 [//]: # (    - Available on modrinth: [OfflinePlayers - Modrinth]&#40;https://modrinth.com/mod/offlineplayers&#41;)
 
