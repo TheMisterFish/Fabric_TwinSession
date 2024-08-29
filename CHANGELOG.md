@@ -1,4 +1,4 @@
-# OfflinePlayers-Reworked 1.0.0 (MC 1.21.1)
+# TwinSession 1.0.0 (MC 1.21.1)
 
 **Updates:**
 
