@@ -1,11 +1,13 @@
 package com.misterfish.mixin;
 
 import com.misterfish.TwinSession;
+import com.misterfish.config.ModConfigs;
 import com.mojang.authlib.GameProfile;
 import com.mojang.logging.LogUtils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerLoginPacketListenerImpl;
 import net.minecraft.server.players.PlayerList;
+import net.minecraft.server.players.UserWhiteListEntry;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -41,6 +43,12 @@ public abstract class ServerLoginPacketListenerImpl_TwinSessionMixin {
                 this.authenticatedProfile = modifiedProfile;
                 LOGGER.info("Modified profile for duplicate login of {}: {} (New UUID: {})",
                         gameProfile.getName(), modifiedProfile.getName(), modifiedProfile.getId());
+
+                // Add whitelist
+                if (ModConfigs.AUTO_WHITELIST && playerList.isUsingWhitelist() && playerList.isWhiteListed(gameProfile)) {
+                    UserWhiteListEntry whitelistEntry = new UserWhiteListEntry(modifiedProfile);
+                    playerList.getWhiteList().add(whitelistEntry);
+                }
 
                 this.finishLoginAndWaitForClient(modifiedProfile);
                 ci.cancel();
