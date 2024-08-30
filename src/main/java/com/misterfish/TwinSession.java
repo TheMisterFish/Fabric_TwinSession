@@ -9,7 +9,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.server.players.UserWhiteListEntry;
 import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.LevelResource;
@@ -78,7 +77,6 @@ public class TwinSession implements ModInitializer {
 
         if (sourcePlayer != null) {
             copyPlayerOpStatus(sourcePlayer, joiningPlayer);
-            copyPlayerWhitelist(sourcePlayer, joiningPlayer);
             copyPlayerGamemode(sourcePlayer, joiningPlayer);
 
             if (ModConfigs.SPAWN_NEAR_PLAYER && !playerDataExists(joiningPlayer.getServer(), joiningPlayer.getGameProfile().getId())) {
@@ -207,24 +205,6 @@ public class TwinSession implements ModInitializer {
 
         if (playerList.isOp(source.getGameProfile())) {
             playerList.op(target.getGameProfile());
-        }
-    }
-
-    private static void copyPlayerWhitelist(ServerPlayer source, ServerPlayer target) {
-        if (!ModConfigs.AUTO_WHITELIST) {
-            return;
-        }
-
-        if (target.getServer() == null) {
-            LOGGER.error("Could not copy player rights to `{}` as the target ({}) getServer() returned null", source.getName().getString(), target.getName().getString());
-            return;
-        }
-
-        PlayerList playerList = target.getServer().getPlayerList();
-
-        if (playerList.isUsingWhitelist() && !playerList.isWhiteListed(source.getGameProfile())) {
-            UserWhiteListEntry whitelistEntry = new UserWhiteListEntry(target.getGameProfile());
-            playerList.getWhiteList().add(whitelistEntry);
         }
     }
 
