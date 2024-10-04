@@ -65,7 +65,7 @@ Configuration can be found under `/config/twinsession.properties` and contains t
 
 If you encounter any bugs or have suggestions for improvements, please create an issue on our GitHub repository. To create an issue:
 
-1. Go to the [Issues](https://github.com/lilfish/Fabric_OfflinePlayersReworked/issues) tab of this repository.
+1. Go to the [Issues](https://github.com/TheMisterFish/Fabric_TwinSession/issues) tab of this repository.
 2. Click on "New Issue".
 3. Choose between "Bug report" or "Feature request" template.
 4. Fill out the template with as much detail as possible.
