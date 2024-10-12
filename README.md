@@ -14,9 +14,9 @@ This mod is built for Minecraft version 1.21 & 1.21.1 and is build using the fol
 
 ## Versions
 
-- **Current Version (1.21 & 1.21.1)**: [Download v1.0.0-mc.1.21.1](https://github.com/TheMisterFish/Fabric_TwinSession/releases/tag/v1.0.0-mc.1.21.1)
+- **Current Version (1.21 & 1.21.1)**: [Download v1.0.2-mc.1.21.1](https://github.com/TheMisterFish/Fabric_TwinSession/releases/tag/v1.0.2-mc.1.21.1)
 
-[//]: # (    - Available on modrinth: [OfflinePlayers - Modrinth]&#40;https://modrinth.com/mod/offlineplayers&#41;)
+    - Available on modrinth: [TwinSessions - Modrinth](https://modrinth.com/mod/twinsession)
 
 ## Download
 
