@@ -1,5 +1,5 @@
-# TwinSession 1.0.1 (MC 1.21.1)
+# TwinSession 1.0.2 (MC 1.21.1)
 
 **Updates:**
 
-- Fixed whitelist config not working.
+- Replaced random-generator with minecraft build-in random-generator.
