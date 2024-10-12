@@ -9,6 +9,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.LevelResource;
@@ -27,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.random.RandomGenerator;
 
 import static net.minecraft.world.level.block.Blocks.LAVA;
 
@@ -38,7 +38,7 @@ public class TwinSession implements ModInitializer {
 
     private static final Map<UUID, Map<Integer, UUID>> twinMap = new HashMap<>();
 
-    private static final RandomGenerator random = RandomGenerator.getDefault();
+    private static final RandomSource random = RandomSource.create();
 
     @Override
     public void onInitialize() {
