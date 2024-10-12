@@ -13,7 +13,6 @@ public class ModConfigs {
     public static boolean AUTO_OP;
     public static boolean SPAWN_NEAR_PLAYER;
     public static int SPAWN_NEAR_PLAYER_RADIUS;
-
     public static boolean COPY_TEXTURE;
     public static boolean PREFIX_WITH_NUMBER;
 
