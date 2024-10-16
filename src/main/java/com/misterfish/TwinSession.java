@@ -29,12 +29,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.misterfish.patch.LuckPermsPatch.initializeLuckPermsPatch;
 import static net.minecraft.world.level.block.Blocks.LAVA;
 
 public class TwinSession implements ModInitializer {
     public static final String MOD_ID = "twinsession";
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     private static final Map<UUID, Map<Integer, UUID>> twinMap = new HashMap<>();
 
@@ -44,6 +45,8 @@ public class TwinSession implements ModInitializer {
     public void onInitialize() {
         // Init config
         ModConfigs.registerConfigs();
+        // Init LuckPerms patch
+        initializeLuckPermsPatch();
     }
 
     public static GameProfile createNewGameProfile(GameProfile gameProfile) {
