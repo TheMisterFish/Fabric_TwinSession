@@ -2,6 +2,7 @@ package com.misterfish.mixin;
 
 import com.misterfish.TwinSession;
 import com.misterfish.config.ModConfigs;
+import com.misterfish.patch.LuckPermsPatch;
 import com.mojang.authlib.GameProfile;
 import com.mojang.logging.LogUtils;
 import net.minecraft.server.MinecraftServer;
@@ -49,6 +50,9 @@ public abstract class ServerLoginPacketListenerImpl_TwinSessionMixin {
                     UserWhiteListEntry whitelistEntry = new UserWhiteListEntry(modifiedProfile);
                     playerList.getWhiteList().add(whitelistEntry);
                 }
+
+                // LuckPerms patch
+                LuckPermsPatch.playerJoined(gameProfile.getId(), modifiedProfile.getId());
 
                 this.finishLoginAndWaitForClient(modifiedProfile);
                 ci.cancel();
