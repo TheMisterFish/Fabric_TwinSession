@@ -37,7 +37,6 @@ public class LuckPermsPatch {
 
     public static void playerJoined(UUID sourceUUID, UUID newUUID) {
         if (!isLuckPermsLoaded || luckPermsApi == null) {
-            LOGGER.error("hoii?");
             return;
         }
 
