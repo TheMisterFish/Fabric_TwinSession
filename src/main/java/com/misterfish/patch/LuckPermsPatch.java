@@ -18,7 +18,7 @@ public class LuckPermsPatch {
     private static boolean isLuckPermsLoaded = false;
     private static LuckPerms luckPermsApi = null;
 
-    public static void initializeLuckPermsPatch() {
+    static {
         checkLuckPermsLoaded();
     }
 
@@ -26,17 +26,18 @@ public class LuckPermsPatch {
         isLuckPermsLoaded = FabricLoader.getInstance().isModLoaded("luckperms");
         if (isLuckPermsLoaded) {
             try {
-                LOGGER.info("LuckPerms API is available, TwinSession will copy permissions to duplicate users.");
+                LOGGER.debug("Loading LuckPerms API");
                 luckPermsApi = LuckPermsProvider.get();
             } catch (IllegalStateException e) {
                 isLuckPermsLoaded = false;
-                LOGGER.debug("LuckPerms API is not available", e);
+                LOGGER.error("LuckPerms API is not available", e);
             }
         }
     }
 
     public static void playerJoined(UUID sourceUUID, UUID newUUID) {
         if (!isLuckPermsLoaded || luckPermsApi == null) {
+            LOGGER.error("hoii?");
             return;
         }
 

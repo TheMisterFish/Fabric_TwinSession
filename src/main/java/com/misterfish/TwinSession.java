@@ -3,6 +3,7 @@ package com.misterfish;
 import com.misterfish.config.ModConfigs;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.MinecraftServer;
@@ -29,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.misterfish.patch.LuckPermsPatch.initializeLuckPermsPatch;
 import static net.minecraft.world.level.block.Blocks.LAVA;
 
 public class TwinSession implements ModInitializer {
@@ -45,8 +45,10 @@ public class TwinSession implements ModInitializer {
     public void onInitialize() {
         // Init config
         ModConfigs.registerConfigs();
-        // Init LuckPerms patch
-        initializeLuckPermsPatch();
+
+        // Inform server admin that LuckPerms is loaded if it is.
+        if(FabricLoader.getInstance().isModLoaded("luckperms"))
+            LOGGER.info("LuckPerms API is available, TwinSession will copy permissions to duplicate users.");
     }
 
     public static GameProfile createNewGameProfile(GameProfile gameProfile) {
