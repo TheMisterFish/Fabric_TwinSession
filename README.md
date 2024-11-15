@@ -7,14 +7,19 @@ Download/Build the .jar file and place it in the `/mods/` folder of your Minecra
 
 ## Dependencies and Compatibility
 
-This mod is built for Minecraft version 1.21 & 1.21.1 and is build using the following dependencies:
+This mod is built for Minecraft version 1.21, 1.21.1 (v1.0.3) & 1.21.3 (v1.1.0) and is build using the following dependencies:
 
+v1.1:
+- Fabric Loader 0.16.8 or higher
+- Fabric API 0.108.0+1.21.3 or higher
+
+v1.0:
 - Fabric Loader 0.15.11 or higher
 - Fabric API 0.102.1+1.21.1 or higher
-
+- 
 ## Versions
 
-- **Current Version (1.21 & 1.21.1)**: [Download v1.0.3-mc.1.21.1](https://github.com/TheMisterFish/Fabric_TwinSession/releases/tag/v1.0.3-mc.1.21.1)
+- **Current Version (1.21.3)**: [Download v1.1.0-mc.1.21.3](https://github.com/TheMisterFish/Fabric_TwinSession/releases/tag/v1.1.0-mc.1.21.3)
 
     - Available on modrinth: [TwinSessions - Modrinth](https://modrinth.com/mod/twinsession)
 
