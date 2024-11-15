@@ -1,8 +1,9 @@
-# TwinSession 1.0.3 (MC 1.21.1)
+# TwinSession 1.1.0 (MC 1.21.3)
 
 **Updates:**
 
-- Added patch for LuckPerms incompatibility.
-
-   Fixes `<user> doesn't currently have data pre-loaded - denying login.` error message when duplicate client joins.
-
+- Updated to 1.21.3
+  
+  Updated mod loader `to 0.16.8`
+  
+  Updated fabric-loom to `1.8-SNAPSHOT`
