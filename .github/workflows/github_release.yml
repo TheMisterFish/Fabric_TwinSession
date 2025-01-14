@@ -3,10 +3,10 @@ name: Publish on GitHub
 on: [ workflow_dispatch ]           
 
 env:                                              
-  MINECRAFT_VERSION: 1.21.3
+  MINECRAFT_VERSION: 1.21.4
   JAVA_VERSION: 21
-  VERSION: 1.1.0-mc.1.21.3
-  RELEASE_NAME: TwinSession 1.1.0 for Minecraft 1.21.3
+  VERSION: 1.1.1-mc.1.21.4
+  RELEASE_NAME: TwinSession 1.1.1 for Minecraft 1.21.4
   GITHUB_TOKEN: ${{ secrets.PUBLISH_GITHUB_TOKEN }}
 
 permissions:
