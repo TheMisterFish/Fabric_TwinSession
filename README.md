@@ -13,17 +13,17 @@ v1.1.1:
 - Fabric Loader 0.16.10 or higher
 - Fabric API 0.114.2+1.21.4 or higher
 
-v1.1:
+v1.1.0:
 - Fabric Loader 0.16.8 or higher
 - Fabric API 0.108.0+1.21.3 or higher
 
-v1.0:
+v1.0.3:
 - Fabric Loader 0.15.11 or higher
 - Fabric API 0.102.1+1.21.1 or higher
-- 
+
 ## Versions
 
-- **Current Version (1.21.3)**: [Download v1.1.1-mc.1.21.4](https://github.com/TheMisterFish/Fabric_TwinSession/releases/tag/v1.1.1-mc.1.21.4)
+- **Current Version (1.21.4)**: [Download v1.1.1-mc.1.21.4](https://github.com/TheMisterFish/Fabric_TwinSession/releases/tag/v1.1.1-mc.1.21.4)
 
     - Available on modrinth: [TwinSessions - Modrinth](https://modrinth.com/mod/twinsession)
 
