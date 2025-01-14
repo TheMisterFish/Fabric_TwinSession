@@ -44,6 +44,8 @@ Each additional session increments this number (e.g., "2_PlayerName", "3_PlayerN
 
 ## How to Use
 
+> Important note: You can either install this mod as server mod or as a client mod. When installed as a server mod, clients are **not** required to install this mod as well.
+
 ### Multiplayer Servers
 1. **First Session**: Join the server as usual with your Minecraft account.
 2. **Second Session**: Open another Minecraft client and join the same server with the same account. The mod will automatically modify your username (e.g., "1_PlayerName") to allow the connection.
