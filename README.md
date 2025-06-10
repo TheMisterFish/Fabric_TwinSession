@@ -27,7 +27,7 @@ v1.0.3:
 
 ## Versions
 
-- **Current Version (1.21.4)**: [Download v1.1.1-mc.1.21.4](https://github.com/TheMisterFish/Fabric_TwinSession/releases/tag/v1.1.1-mc.1.21.4)
+- **Current Version (1.21.5)**: [Download v1.1.2-mc.1.21.5](https://github.com/TheMisterFish/Fabric_TwinSession/releases/tag/v1.1.2-mc.1.21.5)
 
     - Available on modrinth: [TwinSessions - Modrinth](https://modrinth.com/mod/twinsession)
 
