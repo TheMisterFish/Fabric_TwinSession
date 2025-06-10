@@ -7,7 +7,11 @@ Download/Build the .jar file and place it in the `/mods/` folder of your Minecra
 
 ## Dependencies and Compatibility
 
-This mod is built for Minecraft version 1.21, 1.21.1 (v1.0.3), 1.21.3 (v1.1.0),  1.21.4 (v1.1.1) and is build using the following dependencies:
+This mod is built for Minecraft version 1.21, 1.21.1 (v1.0.3), 1.21.3 (v1.1.0), 1.21.4 (v1.1.1), 1.21.5 (v1.1.2) and is build using the following dependencies:
+
+v1.1.2:
+- Fabric Loader 0.16.10 or higher
+- Fabric API 0.125.3+1.21.5 or higher
 
 v1.1.1:
 - Fabric Loader 0.16.10 or higher
