@@ -1,6 +1,6 @@
-package com.misterfish.mixin;
+package com.twinsession.mixin;
 
-import com.misterfish.TwinSession;
+import com.twinsession.TwinSession;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;

@@ -1,4 +1,4 @@
-package com.misterfish.config;
+package com.twinsession.config;
 
 /*
  * Copyright (c) 2021 magistermaks
