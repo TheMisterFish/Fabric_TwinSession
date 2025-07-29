@@ -1,4 +1,4 @@
-name: Publish on GitHub
+name: Publish on GitHub with version
 
 on: [ workflow_dispatch ]
 
