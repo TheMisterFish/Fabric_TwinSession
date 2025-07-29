@@ -1,4 +1,4 @@
-package com.misterfish.patch;
+package com.twinsession.patch;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.luckperms.api.LuckPerms;
@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import static com.misterfish.TwinSession.MOD_ID;
+import static com.twinsession.TwinSession.MOD_ID;
 
 public class LuckPermsPatch {
     private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);

@@ -1,6 +1,6 @@
-package com.misterfish;
+package com.twinsession;
 
-import com.misterfish.config.ModConfigs;
+import com.twinsession.config.ModConfigs;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;

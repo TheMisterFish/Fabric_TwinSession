@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "com.misterfish.mixin.client",
+	"package": "com.twinsession.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"ExampleClientMixin"

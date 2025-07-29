@@ -1,4 +1,4 @@
-package com.misterfish.config;
+package com.twinsession.config;
 
 import com.mojang.datafixers.util.Pair;
 
