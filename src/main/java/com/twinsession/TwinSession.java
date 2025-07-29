@@ -15,7 +15,6 @@ import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +61,8 @@ public class TwinSession implements ModInitializer {
             nextPosition++;
         }
 
-        String newName = StringUtils.left(nextPosition + "_" + gameProfile.getName(), 16);
+        String base = nextPosition + "_" + gameProfile.getName();
+        String newName = base.length() > 16 ? base.substring(0, 16) : base;
         UUID newUUID = generateUUIDFromName(newName + "$");
 
         uuidMap.put(nextPosition, newUUID);

@@ -19,20 +19,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ServerLoginPacketListenerImpl.class)
 public abstract class ServerLoginPacketListenerImpl_TwinSessionMixin {
-    @Shadow
-    @Final
-    MinecraftServer server;
-    @Shadow
-    GameProfile authenticatedProfile;
-
-    @Shadow
-    abstract void finishLoginAndWaitForClient(GameProfile profile);
+    @Shadow @Final MinecraftServer server;
+    @Shadow GameProfile gameProfile;
 
     @Shadow
     static final Logger LOGGER = LogUtils.getLogger();
 
-    @Inject(method = "verifyLoginAndFinishConnectionSetup", at = @At("HEAD"), cancellable = true)
-    private void onVerifyLoginAndFinishConnectionSetup(GameProfile gameProfile, CallbackInfo ci) {
+    @Inject(method = "handleAcceptedLogin", at = @At("HEAD"), cancellable = true)
+    private void onVerifyLoginAndFinishConnectionSetup(CallbackInfo ci) {
         PlayerList playerList = this.server.getPlayerList();
 
         if (playerList.getPlayer(gameProfile.getId()) != null) {
@@ -41,7 +35,7 @@ public abstract class ServerLoginPacketListenerImpl_TwinSessionMixin {
                 // Modify the existing profile to allow the duplicate login
                 GameProfile modifiedProfile = TwinSession.createNewGameProfile(gameProfile);
 
-                this.authenticatedProfile = modifiedProfile;
+                this.gameProfile = modifiedProfile;
                 LOGGER.info("Modified profile for duplicate login of {}: {} (New UUID: {})",
                         gameProfile.getName(), modifiedProfile.getName(), modifiedProfile.getId());
 
@@ -53,8 +47,6 @@ public abstract class ServerLoginPacketListenerImpl_TwinSessionMixin {
 
                 // LuckPerms patch
                 LuckPermsPatch.playerJoined(gameProfile.getId(), modifiedProfile.getId());
-
-                this.finishLoginAndWaitForClient(modifiedProfile);
                 ci.cancel();
             } else {
                 LOGGER.info("Could not connect {} because of too many connections already", gameProfile.getName());
