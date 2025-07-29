@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "com.misterfish.mixin",
+	"package": "com.twinsession.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"PlayerList_TwinSessionMixin",

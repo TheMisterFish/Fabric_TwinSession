@@ -1,8 +1,8 @@
-package com.misterfish.mixin;
+package com.twinsession.mixin;
 
-import com.misterfish.TwinSession;
-import com.misterfish.config.ModConfigs;
-import com.misterfish.patch.LuckPermsPatch;
+import com.twinsession.TwinSession;
+import com.twinsession.config.ModConfigs;
+import com.twinsession.patch.LuckPermsPatch;
 import com.mojang.authlib.GameProfile;
 import com.mojang.logging.LogUtils;
 import net.minecraft.server.MinecraftServer;

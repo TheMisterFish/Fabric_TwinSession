@@ -1,4 +1,4 @@
-package com.misterfish.mixin.client;
+package com.twinsession.mixin.client;
 
 import net.minecraft.client.MinecraftClient;
 import org.spongepowered.asm.mixin.Mixin;
