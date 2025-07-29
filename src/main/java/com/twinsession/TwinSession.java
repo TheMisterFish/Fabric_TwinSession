@@ -284,7 +284,7 @@ public class TwinSession implements ModInitializer {
             newZ = targetPos.z;
         }
 
-        joiningPlayer.teleportTo(serverLevel, newX, newY, newZ, Set.of(), joiningPlayer.getYRot(), joiningPlayer.getXRot(), true);
+        joiningPlayer.teleportTo(serverLevel, newX, newY, newZ, Set.of(), joiningPlayer.getYRot(), joiningPlayer.getXRot());
 
         if (isCreativeFlying) {
             Abilities abilities = joiningPlayer.getAbilities();
@@ -295,8 +295,8 @@ public class TwinSession implements ModInitializer {
     }
 
     private static int findSafeYWithinRange(ServerLevel world, BlockPos pos, int range) {
-        int minY = Math.max(world.getMinY(), pos.getY() - range);
-        int maxY = Math.min(world.getMaxY() - 1, pos.getY() + range);
+        int minY = Math.max(world.getMinBuildHeight(), pos.getY() - range);
+        int maxY = Math.min(world.getMaxBuildHeight() - 1, pos.getY() + range);
 
         for (int y = maxY; y >= minY; y--) {
             BlockPos checkPos = new BlockPos(pos.getX(), y, pos.getZ());
