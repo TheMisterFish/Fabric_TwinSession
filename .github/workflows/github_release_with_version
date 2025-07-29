@@ -1,0 +1,62 @@
+name: Publish on GitHub
+
+on: [ workflow_dispatch ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      JAVA_VERSION: 21
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Check Environment Variables
+        run: env
+
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: "temurin"
+          java-version: 21
+
+      - name: Make Gradle Wrapper Executable
+        if: ${{ runner.os != 'Windows' }}
+        run: chmod +x ./gradlew
+
+      - name: Build
+        run: ./gradlew clean build
+
+      - name: Set Version Variables
+        id: vars
+        run: |
+          MC_VERSION="${{ github.ref_name }}"
+          VERSION="1.2.0-mc.${MC_VERSION}"
+          RELEASE_NAME="TwinSession 1.2.0 for Minecraft ${MC_VERSION}"
+
+          echo "MC_VERSION=$MC_VERSION" >> $GITHUB_OUTPUT
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Publish (GitHub)
+        uses: Kir-Antipov/mc-publish@v3.3.0
+        with:
+          github-tag: "v${{ steps.vars.outputs.VERSION }}"
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+          name: "${{ steps.vars.outputs.RELEASE_NAME }}"
+          version: "${{ steps.vars.outputs.VERSION }}"
+          version-type: release
+          changelog-file: CHANGELOG.md
+
+          loaders: fabric
+          game-versions: "${{ steps.vars.outputs.MC_VERSION }}"
+          java: "${{ env.JAVA_VERSION }}"
