@@ -1,8 +1,8 @@
-# TwinSession 1.2.0 (MC 1.21.5)
+# TwinSession 1.2.0 (MC 1.21.6)
 
 **Updates:**
 
-- Updated to 1.21.5
+- Updated to 1.21.6
   
   Updated mod loader `to 0.16.14`
   Updated from Loom `1.10` to `1.11` 
