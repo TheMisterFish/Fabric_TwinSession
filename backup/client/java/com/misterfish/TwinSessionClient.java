@@ -1,4 +1,4 @@
-package com.misterfish;
+package com.twinsession;
 
 import net.fabricmc.api.ClientModInitializer;
 

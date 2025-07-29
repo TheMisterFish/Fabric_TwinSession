@@ -16,7 +16,7 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.misterfish.TwinSession"
+			"com.twinsession.TwinSession"
 		]
 	},
 	"mixins": [

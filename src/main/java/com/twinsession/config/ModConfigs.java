@@ -1,8 +1,8 @@
-package com.misterfish.config;
+package com.twinsession.config;
 
 import com.mojang.datafixers.util.Pair;
 
-import static com.misterfish.TwinSession.MOD_ID;
+import static com.twinsession.TwinSession.MOD_ID;
 
 public class ModConfigs {
     public static SimpleConfig CONFIG;
