@@ -5,7 +5,7 @@ plugins {
 	id 'io.freefair.lombok' version '8.6'
 }
 
-version = project.mod_version
+version = project.mod_version + "_" + project.minecraft_version
 group = project.maven_group
 
 base {
