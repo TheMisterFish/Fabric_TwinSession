@@ -101,7 +101,7 @@ public class TwinSession implements ModInitializer {
         if (sourcePlayer != null) {
             sourcePlayer.getGameProfile().getProperties().get("textures")
                     .forEach(property -> joiningPlayer.getGameProfile().getProperties().put("textures", property));
-            MinecraftServer server = joiningPlayer.server;
+            MinecraftServer server = joiningPlayer.getServer();
 
             server.getPlayerList().broadcastAll(new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, joiningPlayer));
 
