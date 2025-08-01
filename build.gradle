@@ -43,6 +43,14 @@ processResources {
 	}
 }
 
+fabricApi {
+	configureTests {
+		createSourceSet = true
+		modId = "twinsession-test-${project.name}"
+		eula = true
+	}
+}
+
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 21
 }
