@@ -31,10 +31,6 @@ v1.0.3:
 
     - Available on modrinth: [TwinSessions - Modrinth](https://modrinth.com/mod/twinsession)
 
-## Download
-
-Currently, the mod is only available through GitHub Releases. We plan to add it to Modrinth in the near future.
-
 ## Goal
 
 The **Fabric TwinSession** mod enables players to connect to a Minecraft server multiple times using the same account. 
