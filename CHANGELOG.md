@@ -1,11 +1,8 @@
-# TwinSession 1.2.0 (MC 1.21.6)
+# TwinSession 1.2.0 (MC 1.21.8)
 
 **Updates:**
 
-- Updated to 1.21.6
+- Updated to 1.21.8
   
-  Updated mod loader `to 0.16.14`
-  Updated from Loom `1.10` to `1.11` 
-  Updated from gradle `8.12` to `8.14`
-
-- Updated package name
+  Updated mod loader `to 0.18.1`
+  Updated from Loom `1.11` to `1.13`
