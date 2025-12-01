@@ -39,8 +39,8 @@ jobs:
         id: vars
         run: |
           MC_VERSION="${{ github.ref_name }}"
-          VERSION="1.2.0-mc.${MC_VERSION}"
-          RELEASE_NAME="TwinSession 1.2.0 for Minecraft ${MC_VERSION}"
+          VERSION="1.2.1-mc.${MC_VERSION}"
+          RELEASE_NAME="TwinSession 1.2.1 for Minecraft ${MC_VERSION}"
 
           echo "MC_VERSION=$MC_VERSION" >> $GITHUB_OUTPUT
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
