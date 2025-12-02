@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "gametest-twinsession",
+  "version": "1.0.0",
+  "name": "Fabric docs reference",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-gametest": [
+      "com.twinsession.CreateNewGameProfileTest",
+      "com.twinsession.CanJoinTest",
+      "com.twinsession.PlayerJoinedTest",
+      "com.twinsession.PlayerLeftTest"
+    ]
+  }
+}
