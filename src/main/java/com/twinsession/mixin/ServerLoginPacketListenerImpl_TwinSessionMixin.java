@@ -44,15 +44,15 @@ public abstract class ServerLoginPacketListenerImpl_TwinSessionMixin {
             if (TwinSession.canJoin(serverPlayer)) {
 
                 // Modify the existing profile to allow the duplicate login
-                GameProfile modifiedProfile = TwinSession.createNewGameProfile(gameProfile, serverPlayer);
+                GameProfile modifiedProfile = TwinSession.createNewGameProfile(serverPlayer);
 
                 this.authenticatedProfile = modifiedProfile;
                 LOGGER.info("Modified profile for duplicate login of {}: {} (New UUID: {})",
                         gameProfile.name(), modifiedProfile.name(), modifiedProfile.id());
 
                 // Add whitelist
-                NameAndId nameAndId = new NameAndId(gameProfile.id(), gameProfile.name());
-                NameAndId modifiedProfileNameAndId = new NameAndId(modifiedProfile.id(), modifiedProfile.name());
+                NameAndId nameAndId = new NameAndId(gameProfile);
+                NameAndId modifiedProfileNameAndId = new NameAndId(modifiedProfile);
                 if (ModConfigs.AUTO_WHITELIST && playerList.isUsingWhitelist() && playerList.isWhiteListed(nameAndId)) {
                     UserWhiteListEntry whitelistEntry = new UserWhiteListEntry(modifiedProfileNameAndId);
                     playerList.getWhiteList().add(whitelistEntry);
