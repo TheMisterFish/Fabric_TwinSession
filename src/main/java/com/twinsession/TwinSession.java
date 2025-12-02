@@ -1,5 +1,6 @@
 package com.twinsession;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
@@ -49,7 +50,8 @@ public class TwinSession implements ModInitializer {
             LOGGER.info("LuckPerms API is available, TwinSession will copy permissions to duplicate users.");
     }
 
-    public static GameProfile createNewGameProfile(GameProfile gameProfile, ServerPlayer sourcePlayer) {
+    public static GameProfile createNewGameProfile(ServerPlayer sourcePlayer) {
+        GameProfile gameProfile = sourcePlayer.getGameProfile();
         UUID originalUUID = gameProfile.id();
 
         Map<Integer, UUID> uuidMap = twinMap.computeIfAbsent(originalUUID, key -> new HashMap<>());
@@ -94,12 +96,11 @@ public class TwinSession implements ModInitializer {
     }
 
     public static boolean canJoin(ServerPlayer joiningPlayer) {
-        ServerPlayer sourcePlayer = getSourcePlayer(joiningPlayer);
-        if (sourcePlayer == null) {
+        Map<Integer, UUID> mapEntry = twinMap.get(joiningPlayer.getUUID());
+        if (mapEntry == null) {
             return true;
         }
-
-        return twinMap.get(sourcePlayer.getGameProfile().id()).size() + 1 < ModConfigs.MAX_PLAYERS;
+        return mapEntry.size() + 1 < ModConfigs.MAX_PLAYERS;
     }
 
     public static void playerLeft(ServerPlayer serverPlayer) {
@@ -129,8 +130,6 @@ public class TwinSession implements ModInitializer {
 
     private static ServerPlayer getSourcePlayer(ServerPlayer joiningPlayer) {
         UUID searchUUID = joiningPlayer.getGameProfile().id();
-
-        joiningPlayer.level().getServer();
 
         for (Map.Entry<UUID, Map<Integer, UUID>> entry : twinMap.entrySet()) {
             Map<Integer, UUID> uuidMap = entry.getValue();
@@ -178,9 +177,10 @@ public class TwinSession implements ModInitializer {
         }
 
         PlayerList playerList = target.level().getServer().getPlayerList();
-        NameAndId nameAndId = new NameAndId(source.getGameProfile().id(), source.getGameProfile().name());
-        if (playerList.isOp(nameAndId)) {
-            playerList.op(nameAndId);
+        NameAndId sourceNameAndId = new NameAndId(source.getGameProfile());
+        NameAndId targetNameAndId = new NameAndId(target.getGameProfile());
+        if (playerList.isOp(sourceNameAndId)) {
+            playerList.op(targetNameAndId);
         }
     }
 
@@ -287,5 +287,10 @@ public class TwinSession implements ModInitializer {
 
     private static boolean isPlayerOnNetherRoof(ServerLevel world, Vec3 pos) {
         return world.dimensionType().hasCeiling() && pos.y >= world.getLogicalHeight();
+    }
+
+    @VisibleForTesting
+    public static Map<UUID, Map<Integer, UUID>> getTwinMap(){
+        return twinMap;
     }
 }

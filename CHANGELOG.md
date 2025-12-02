@@ -1,5 +1,7 @@
-# TwinSession 1.2.1 (MC 1.21.10)
+# TwinSession 1.4.0 (MC 1.21.10)
 
 **Updates:**
 
-- Updated to 1.21.10
+- Added GameTest tests
+- Fixed bug where more than set amount of joins were possible
+- Minor other code fixes
