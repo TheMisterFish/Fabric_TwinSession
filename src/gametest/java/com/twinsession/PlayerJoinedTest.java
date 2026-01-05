@@ -1,6 +1,7 @@
 package com.twinsession;
 
 import com.mojang.authlib.GameProfile;
+import com.twinsession.config.ModConfigs;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -47,6 +48,7 @@ public class PlayerJoinedTest {
 
         TwinSession.getTwinMap().clear();
         context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(ORIGINAL_UUID);
+        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(EXPECTED_UUID);
         context.succeed();
     }
 
@@ -79,8 +81,34 @@ public class PlayerJoinedTest {
 
         TwinSession.getTwinMap().clear();
         context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(ORIGINAL_UUID);
+        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(EXPECTED_UUID);
         context.getLevel().getServer().getPlayerList().deop(sourceNameAndId);
         context.getLevel().getServer().getPlayerList().deop(joiningNameAndId);
+        context.succeed();
+    }
+
+    @GameTest
+    public void playerJoinedCheckLocation(GameTestHelper context) {
+        ModConfigs.SPAWN_NEAR_PLAYER_RADIUS = 3;
+        ServerPlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
+        sourcePlayer.setGameMode(GameType.CREATIVE);
+        TwinSession.getTwinMap().put(ORIGINAL_UUID, new HashMap<>());
+        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false, Entity.RemovalReason.CHANGED_DIMENSION);
+
+        Map<Integer, UUID> twins = new HashMap<>();
+        twins.put(0, EXPECTED_UUID);
+        TwinSession.getTwinMap().put(ORIGINAL_UUID, twins);
+
+        ServerPlayer joiningPlayer = FakePlayer.get(context.getLevel(), joiningProfile);
+        TwinSession.playerJoined(joiningPlayer);
+
+        context.assertTrue( sourcePlayer.position().distanceTo(joiningPlayer.position()) <= ModConfigs.SPAWN_NEAR_PLAYER_RADIUS + 1, "Players are too far apart" );
+
+        ModConfigs.SPAWN_NEAR_PLAYER_RADIUS = 10;
+
+        TwinSession.getTwinMap().clear();
+        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(ORIGINAL_UUID);
+        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(EXPECTED_UUID);
         context.succeed();
     }
 }

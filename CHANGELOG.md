@@ -1,7 +1,6 @@
-# TwinSession 1.4.0 (MC 1.21.10)
+# TwinSession 1.4.1 (MC 1.21.11)
 
 **Updates:**
 
-- Added GameTest tests
-- Fixed bug where more than set amount of joins were possible
-- Minor other code fixes
+- Updated to 1.21.11
+- Added GameTest test to assert SPAWN_NEAR_PLAYER_RADIUS config.
