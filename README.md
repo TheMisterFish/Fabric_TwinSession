@@ -4,37 +4,6 @@
 
 Download/Build the .jar file and place it in the `/mods/` folder of your Minecraft Fabric server or client folder.
 
-
-## Dependencies and Compatibility
-
-This mod is built for Minecraft version 1.21, 1.21.1 (v1.0.3), 1.21.3 (v1.1.0), 1.21.4 (v1.1.1), 1.21.5 (v1.1.2) and is build using the following dependencies:
-
-v1.1.2:
-- Fabric Loader 0.16.10 or higher
-- Fabric API 0.125.3+1.21.5 or higher
-
-v1.1.1:
-- Fabric Loader 0.16.10 or higher
-- Fabric API 0.114.2+1.21.4 or higher
-
-v1.1.0:
-- Fabric Loader 0.16.8 or higher
-- Fabric API 0.108.0+1.21.3 or higher
-
-v1.0.3:
-- Fabric Loader 0.15.11 or higher
-- Fabric API 0.102.1+1.21.1 or higher
-
-## Versions
-
-- **Current Version (1.21.5)**: [Download v1.1.2-mc.1.21.5](https://github.com/TheMisterFish/Fabric_TwinSession/releases/tag/v1.1.2-mc.1.21.5)
-
-    - Available on modrinth: [TwinSessions - Modrinth](https://modrinth.com/mod/twinsession)
-
-## Download
-
-Currently, the mod is only available through GitHub Releases. We plan to add it to Modrinth in the near future.
-
 ## Goal
 
 The **Fabric TwinSession** mod enables players to connect to a Minecraft server multiple times using the same account. 
@@ -51,11 +20,13 @@ Each additional session increments this number (e.g., "2_PlayerName", "3_PlayerN
 > Important note: You can either install this mod as server mod or as a client mod. When installed as a server mod, clients are **not** required to install this mod as well.
 
 ### Multiplayer Servers
+_When installed on a server environment_
 1. **First Session**: Join the server as usual with your Minecraft account.
 2. **Second Session**: Open another Minecraft client and join the same server with the same account. The mod will automatically modify your username (e.g., "1_PlayerName") to allow the connection.
 3. **Additional Sessions**: Repeat the process to join the server with more clients using the same account. Each additional session will receive a sequentially numbered username (e.g., "2_PlayerName", "3_PlayerName").
 
 ### Singleplayer (LAN)
+_When installed on a client environment_
 1. **Set Up**: Start your Minecraft world and select "Open to LAN" from the pause menu.
 2. **Connecting**: Follow the same process as in Multiplayer to connect with multiple clients using the same account.
 

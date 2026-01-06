@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.13-SNAPSHOT'
+	id 'fabric-loom' version "${loom_version}"
 	id 'maven-publish'
 	id 'io.github.juuxel.loom-quiltflower' version '1.7.3'
 	id 'io.freefair.lombok' version '8.6'
@@ -39,7 +39,7 @@ processResources {
 	inputs.property "version", project.version
 
 	filesMatching("fabric.mod.json") {
-		expand "version": project.version
+		expand "version": inputs.properties.version
 	}
 }
 
@@ -55,6 +55,18 @@ java {
 
 	sourceCompatibility = JavaVersion.VERSION_21
 	targetCompatibility = JavaVersion.VERSION_21
+}
+
+test {
+	useJUnitPlatform()
+}
+
+fabricApi {
+	configureTests {
+		createSourceSet = true
+		modId = "gametest-${project.name}"
+		eula = true
+	}
 }
 
 jar {

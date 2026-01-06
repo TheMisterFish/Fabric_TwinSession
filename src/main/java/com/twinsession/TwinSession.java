@@ -1,7 +1,8 @@
 package com.twinsession;
 
-import com.twinsession.config.ModConfigs;
+import com.google.common.annotations.VisibleForTesting;
 import com.mojang.authlib.GameProfile;
+import com.twinsession.config.ModConfigs;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
@@ -24,12 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static net.minecraft.world.level.block.Blocks.LAVA;
 
@@ -44,15 +40,14 @@ public class TwinSession implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        // Init config
         ModConfigs.registerConfigs();
 
-        // Inform server admin that LuckPerms is loaded if it is.
-        if(FabricLoader.getInstance().isModLoaded("luckperms"))
+        if (FabricLoader.getInstance().isModLoaded("luckperms"))
             LOGGER.info("LuckPerms API is available, TwinSession will copy permissions to duplicate users.");
     }
 
-    public static GameProfile createNewGameProfile(GameProfile gameProfile) {
+    public static GameProfile createNewGameProfile(ServerPlayer sourcePlayer) {
+        GameProfile gameProfile = sourcePlayer.getGameProfile();
         UUID originalUUID = gameProfile.getId();
 
         Map<Integer, UUID> uuidMap = twinMap.computeIfAbsent(originalUUID, key -> new HashMap<>());
@@ -67,28 +62,9 @@ public class TwinSession implements ModInitializer {
 
         uuidMap.put(nextPosition, newUUID);
 
-        if (ModConfigs.PREFIX_WITH_NUMBER) {
-            return new GameProfile(newUUID, newName);
-        }
+        String nameToUse = ModConfigs.PREFIX_WITH_NUMBER ? newName : gameProfile.getName();
 
-        return new GameProfile(newUUID, gameProfile.getName());
-    }
-
-    public static void playerJoined(@NotNull ServerPlayer joiningPlayer) {
-        if (joiningPlayer.getServer() == null) {
-            return;
-        }
-
-        ServerPlayer sourcePlayer = getSourcePlayer(joiningPlayer);
-
-        if (sourcePlayer != null) {
-            copyPlayerOpStatus(sourcePlayer, joiningPlayer);
-            copyPlayerGamemode(sourcePlayer, joiningPlayer);
-
-            if (ModConfigs.SPAWN_NEAR_PLAYER && !playerDataExists(joiningPlayer.getServer(), joiningPlayer.getGameProfile().getId())) {
-                spawnPlayerNearby(joiningPlayer, sourcePlayer);
-            }
-        }
+        return new GameProfile(newUUID, nameToUse);
     }
 
     public static void copySourceTexture(ServerPlayer joiningPlayer) {
@@ -115,13 +91,28 @@ public class TwinSession implements ModInitializer {
         }
     }
 
-    public static boolean canJoin(ServerPlayer joiningPlayer) {
+
+    public static void playerJoined(@NotNull ServerPlayer joiningPlayer) {
+        joiningPlayer.level().getServer();
+
         ServerPlayer sourcePlayer = getSourcePlayer(joiningPlayer);
-        if (sourcePlayer == null) {
+
+        if (sourcePlayer != null) {
+            copyPlayerOpStatus(sourcePlayer, joiningPlayer);
+            copyPlayerGamemode(sourcePlayer, joiningPlayer);
+
+            if (ModConfigs.SPAWN_NEAR_PLAYER && !playerDataExists(joiningPlayer.level().getServer(), joiningPlayer.getGameProfile().getId())) {
+                spawnPlayerNearby(joiningPlayer, sourcePlayer);
+            }
+        }
+    }
+
+    public static boolean canJoin(ServerPlayer joiningPlayer) {
+        Map<Integer, UUID> mapEntry = twinMap.get(joiningPlayer.getUUID());
+        if (mapEntry == null) {
             return true;
         }
-
-        return twinMap.get(sourcePlayer.getGameProfile().getId()).size() + 1 < ModConfigs.MAX_PLAYERS;
+        return mapEntry.size() + 1 < ModConfigs.MAX_PLAYERS;
     }
 
     public static void playerLeft(ServerPlayer serverPlayer) {
@@ -152,17 +143,12 @@ public class TwinSession implements ModInitializer {
     private static ServerPlayer getSourcePlayer(ServerPlayer joiningPlayer) {
         UUID searchUUID = joiningPlayer.getGameProfile().getId();
 
-        if (joiningPlayer.getServer() == null) {
-            LOGGER.error("Could not get source player as the server is null for player {}", joiningPlayer.getName().getString());
-            return null;
-        }
-
         for (Map.Entry<UUID, Map<Integer, UUID>> entry : twinMap.entrySet()) {
             Map<Integer, UUID> uuidMap = entry.getValue();
 
             if (uuidMap.containsValue(searchUUID)) {
                 UUID originalUUID = entry.getKey();
-                return joiningPlayer.getServer().getPlayerList().getPlayer(originalUUID);
+                return joiningPlayer.level().getServer().getPlayerList().getPlayer(originalUUID);
             }
         }
         return null;
@@ -202,13 +188,7 @@ public class TwinSession implements ModInitializer {
             return;
         }
 
-        if (target.getServer() == null) {
-            LOGGER.error("Could not copy player rights to `{}` as the target ({}) getServer() returned null", source.getName().getString(), target.getName().getString());
-            return;
-        }
-
-        PlayerList playerList = target.getServer().getPlayerList();
-
+        PlayerList playerList = target.level().getServer().getPlayerList();
         if (playerList.isOp(source.getGameProfile())) {
             playerList.op(target.getGameProfile());
         }
@@ -317,5 +297,10 @@ public class TwinSession implements ModInitializer {
 
     private static boolean isPlayerOnNetherRoof(ServerLevel world, Vec3 pos) {
         return world.dimensionType().hasCeiling() && pos.y >= world.getLogicalHeight();
+    }
+
+    @VisibleForTesting
+    public static Map<UUID, Map<Integer, UUID>> getTwinMap() {
+        return twinMap;
     }
 }
