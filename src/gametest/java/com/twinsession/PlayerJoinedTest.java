@@ -25,7 +25,7 @@ public class PlayerJoinedTest {
         ServerPlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
         sourcePlayer.setGameMode(GameType.SURVIVAL);
         TwinSession.getTwinMap().put(ORIGINAL_UUID, new HashMap<>());
-        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false, Entity.RemovalReason.CHANGED_DIMENSION);
+        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false);
 
         Map<Integer, UUID> twins = new HashMap<>();
         twins.put(0, EXPECTED_UUID);
@@ -34,9 +34,9 @@ public class PlayerJoinedTest {
         ServerPlayer joiningPlayer = FakePlayer.get(context.getLevel(), joiningProfile);
         TwinSession.playerJoined(joiningPlayer);
 
-        context.assertValueEqual(
-                sourcePlayer.gameMode.getGameModeForPlayer(),
-                joiningPlayer.gameMode.getGameModeForPlayer(),
+        context.assertTrue(
+                sourcePlayer.gameMode.getGameModeForPlayer().equals(
+                        joiningPlayer.gameMode.getGameModeForPlayer()),
                 "Checking gamemode copy"
         );
 
@@ -44,8 +44,7 @@ public class PlayerJoinedTest {
                 "Checking op status copy");
 
         TwinSession.getTwinMap().clear();
-        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(sourceProfile);
-        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(joiningProfile);
+        context.getLevel().getServer().getPlayerList().removeAll();
         context.succeed();
     }
 
@@ -54,7 +53,7 @@ public class PlayerJoinedTest {
         ServerPlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
         sourcePlayer.setGameMode(GameType.CREATIVE);
         TwinSession.getTwinMap().put(ORIGINAL_UUID, new HashMap<>());
-        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false, Entity.RemovalReason.CHANGED_DIMENSION);
+        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false);
 
         context.getLevel().getServer().getPlayerList().op(sourcePlayer.getGameProfile());
 
@@ -65,9 +64,9 @@ public class PlayerJoinedTest {
         ServerPlayer joiningPlayer = FakePlayer.get(context.getLevel(), joiningProfile);
         TwinSession.playerJoined(joiningPlayer);
 
-        context.assertValueEqual(
-                sourcePlayer.gameMode.getGameModeForPlayer(),
-                joiningPlayer.gameMode.getGameModeForPlayer(),
+        context.assertTrue(
+                sourcePlayer.gameMode.getGameModeForPlayer().equals(
+                        joiningPlayer.gameMode.getGameModeForPlayer()),
                 "Checking gamemode copy"
         );
 
@@ -75,8 +74,7 @@ public class PlayerJoinedTest {
                 "Checking op status copy");
 
         TwinSession.getTwinMap().clear();
-        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(sourceProfile);
-        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(joiningProfile);
+        context.getLevel().getServer().getPlayerList().removeAll();
         context.getLevel().getServer().getPlayerList().deop(sourcePlayer.getGameProfile());
         context.getLevel().getServer().getPlayerList().deop(joiningPlayer.getGameProfile());
         context.succeed();
@@ -88,7 +86,7 @@ public class PlayerJoinedTest {
         ServerPlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
         sourcePlayer.setGameMode(GameType.CREATIVE);
         TwinSession.getTwinMap().put(ORIGINAL_UUID, new HashMap<>());
-        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false, Entity.RemovalReason.CHANGED_DIMENSION);
+        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false);
 
         Map<Integer, UUID> twins = new HashMap<>();
         twins.put(0, EXPECTED_UUID);
@@ -102,8 +100,7 @@ public class PlayerJoinedTest {
         ModConfigs.SPAWN_NEAR_PLAYER_RADIUS = 10;
 
         TwinSession.getTwinMap().clear();
-        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(sourceProfile);
-        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(joiningProfile);
+        context.getLevel().getServer().getPlayerList().removeAll();
         context.succeed();
     }
 }

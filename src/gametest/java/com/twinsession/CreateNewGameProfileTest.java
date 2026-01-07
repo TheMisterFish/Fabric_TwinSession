@@ -22,10 +22,10 @@ public class CreateNewGameProfileTest {
         GameProfile sourceProfile = new GameProfile(ORIGINAL_UUID, ORIGINAL_NAME);
         FakePlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
 
-        GameProfile joiningProfile = TwinSession.createNewGameProfile(sourcePlayer);
+        GameProfile joiningProfile = TwinSession.createNewGameProfile(sourcePlayer.getGameProfile());
 
-        context.assertValueEqual(EXPECTED_NAME, joiningProfile.getName(), "Checking new player name");
-        context.assertValueEqual(EXPECTED_UUID, joiningProfile.getId(), "Checking new player uuid");
+        context.assertTrue(EXPECTED_NAME.equals(joiningProfile.getName()), "Checking new player name");
+        context.assertTrue(EXPECTED_UUID.equals(joiningProfile.getId()), "Checking new player uuid");
 
         TwinSession.getTwinMap().clear();
         context.succeed();
@@ -36,11 +36,11 @@ public class CreateNewGameProfileTest {
         GameProfile sourceProfile = new GameProfile(ORIGINAL_UUID, ORIGINAL_NAME);
         FakePlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
 
-        GameProfile firstProfile = TwinSession.createNewGameProfile(sourcePlayer);
-        GameProfile secondProfile = TwinSession.createNewGameProfile(sourcePlayer);
+        GameProfile firstProfile = TwinSession.createNewGameProfile(sourcePlayer.getGameProfile());
+        GameProfile secondProfile = TwinSession.createNewGameProfile(sourcePlayer.getGameProfile());
 
-        context.assertValueEqual(EXPECTED_NAME, firstProfile.getName(), "Checking new player name");
-        context.assertValueEqual(SECOND_EXPECTED_NAME, secondProfile.getName(), "Checking new player name");
+        context.assertTrue(EXPECTED_NAME.equals(firstProfile.getName()), "Checking new player name");
+        context.assertTrue(SECOND_EXPECTED_NAME.equals(secondProfile.getName()), "Checking new player name");
 
         TwinSession.getTwinMap().clear();
         context.succeed();
@@ -52,10 +52,10 @@ public class CreateNewGameProfileTest {
         GameProfile sourceProfile = new GameProfile(ORIGINAL_UUID, ORIGINAL_NAME);
         FakePlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
 
-        GameProfile joiningProfile = TwinSession.createNewGameProfile(sourcePlayer);
+        GameProfile joiningProfile = TwinSession.createNewGameProfile(sourcePlayer.getGameProfile());
 
-        context.assertValueEqual(ORIGINAL_NAME, joiningProfile.getName(), "Checking new player name");
-        context.assertValueEqual(EXPECTED_UUID, joiningProfile.getId(), "Checking new player uuid");
+        context.assertTrue(ORIGINAL_NAME.equals(joiningProfile.getName()), "Checking new player name");
+        context.assertTrue(EXPECTED_UUID.equals(joiningProfile.getId()), "Checking new player uuid");
 
         TwinSession.getTwinMap().clear();
         ModConfigs.PREFIX_WITH_NUMBER = true;

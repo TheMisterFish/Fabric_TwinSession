@@ -1,16 +1,14 @@
 package com.twinsession;
 
-import com.google.common.collect.ImmutableListMultimap;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import com.mojang.authlib.properties.PropertyMap;
 import com.twinsession.config.ModConfigs;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.world.entity.Entity;
 
+import java.util.Collection;
 import java.util.UUID;
 
 public class CopySourceTexture {
@@ -22,17 +20,17 @@ public class CopySourceTexture {
         sourcePlayer.getGameProfile().getProperties().put("textures", new Property("test", "test"));
         sourcePlayer.getGameProfile().getProperties().put("junk", new Property("test", "test"));
 
-        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false, Entity.RemovalReason.DISCARDED);
+        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false);
 
-        GameProfile joiningProfile = TwinSession.createNewGameProfile(sourcePlayer);
+        GameProfile joiningProfile = TwinSession.createNewGameProfile(sourcePlayer.getGameProfile());
         FakePlayer joiningPlayer = FakePlayer.get(context.getLevel(), joiningProfile);
         TwinSession.copySourceTexture(joiningPlayer);
 
-        PropertyMap expectedProperties = new PropertyMap();
-        expectedProperties.put("textures", new Property("test", "test"));
+        context.assertTrue("1_withTexture".equals(joiningPlayer.getGameProfile().getName()), "Checking new player name");
+        context.assertTrue(joiningPlayer.getGameProfile().getProperties().size() == 1, "Checking new player properties size");
 
-        context.assertValueEqual("1_withTexture", joiningPlayer.getGameProfile().getName(), "Checking new player name");
-        context.assertValueEqual(expectedProperties, joiningPlayer.getGameProfile().getProperties(), "Checking new player texture property");
+        Collection<Property> textureProperty = joiningPlayer.getGameProfile().getProperties().get("textures");
+        context.assertTrue(sourcePlayer.getGameProfile().getProperties().get("textures").equals(textureProperty), "Checking new player textures property");
 
         TwinSession.getTwinMap().clear();
         context.succeed();
@@ -47,16 +45,16 @@ public class CopySourceTexture {
         sourcePlayer.getGameProfile().getProperties().put("textures", new Property("test", "test"));
         sourcePlayer.getGameProfile().getProperties().put("junk", new Property("test", "test"));
 
-        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false, Entity.RemovalReason.DISCARDED);
+        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false);
 
-        GameProfile joiningProfile = TwinSession.createNewGameProfile(sourcePlayer);
+        GameProfile joiningProfile = TwinSession.createNewGameProfile(sourcePlayer.getGameProfile());
         FakePlayer joiningPlayer = FakePlayer.get(context.getLevel(), joiningProfile);
 
         ModConfigs.COPY_TEXTURE = false;
         TwinSession.copySourceTexture(joiningPlayer);
 
-        context.assertValueEqual("1_withoutTexture", joiningPlayer.getGameProfile().getName(), "Checking new player name");
-        context.assertValueEqual(ImmutableListMultimap.of(), joiningPlayer.getGameProfile().getProperties(), "Checking new player texture property");
+        context.assertTrue("1_withoutTexture".equals(joiningPlayer.getGameProfile().getName()), "Checking new player name");
+        context.assertTrue(joiningPlayer.getGameProfile().getProperties().isEmpty(), "Checking new player texture property");
 
         TwinSession.getTwinMap().clear();
         ModConfigs.COPY_TEXTURE = true;
