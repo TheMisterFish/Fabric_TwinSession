@@ -9,7 +9,8 @@
       "com.twinsession.CreateNewGameProfileTest",
       "com.twinsession.CanJoinTest",
       "com.twinsession.PlayerJoinedTest",
-      "com.twinsession.PlayerLeftTest"
+      "com.twinsession.PlayerLeftTest",
+      "com.twinsession.CopySourceTexture"
     ]
   }
 }

@@ -1,15 +1,11 @@
 package com.twinsession;
 
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
-import com.mojang.authlib.properties.PropertyMap;
 import com.twinsession.config.ModConfigs;
 import net.fabricmc.fabric.api.entity.FakePlayer;
-import net.fabricmc.fabric.api.gametest.v1.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
+import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.chat.Component;
 
 import java.util.UUID;
 
@@ -18,46 +14,39 @@ public class CreateNewGameProfileTest {
     private final UUID EXPECTED_UUID = UUID.fromString("154b443e-554d-3301-850d-637ccc5e91ef");
     private final String ORIGINAL_NAME = "MisterFish_";
     private final String EXPECTED_NAME = "1_MisterFish_";
-    private final Multimap<String, Property> ORIGINAL_PROPERTIES =
-            ImmutableListMultimap.of(
-                    "textures", new Property("test", "test"),
-                    "junk", new Property("test", "test")
-            );
-    private final Multimap<String, Property> EXPECTED_PROPERTIES =
-            ImmutableListMultimap.of(
-                    "textures", new Property("test", "test")
-            );
+    private final String SECOND_EXPECTED_NAME = "2_MisterFish_";
 
-    @GameTest
-    public void withoutTextureTest(GameTestHelper context) {
+
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    public void withPrefix(GameTestHelper context) {
         GameProfile sourceProfile = new GameProfile(ORIGINAL_UUID, ORIGINAL_NAME);
         FakePlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
 
         GameProfile joiningProfile = TwinSession.createNewGameProfile(sourcePlayer);
 
-        context.assertValueEqual(EXPECTED_NAME, joiningProfile.name(), Component.literal("Checking new player name"));
-        context.assertValueEqual(EXPECTED_UUID, joiningProfile.id(), Component.literal("Checking new player uuid"));
+        context.assertValueEqual(EXPECTED_NAME, joiningProfile.getName(), "Checking new player name");
+        context.assertValueEqual(EXPECTED_UUID, joiningProfile.getId(), "Checking new player uuid");
 
         TwinSession.getTwinMap().clear();
         context.succeed();
     }
 
-    @GameTest
-    public void withTextureTest(GameTestHelper context) {
-        GameProfile sourceProfile = new GameProfile(ORIGINAL_UUID, ORIGINAL_NAME, new PropertyMap(ORIGINAL_PROPERTIES));
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    public void withPrefixSecond(GameTestHelper context) {
+        GameProfile sourceProfile = new GameProfile(ORIGINAL_UUID, ORIGINAL_NAME);
         FakePlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
 
-        GameProfile joiningProfile = TwinSession.createNewGameProfile(sourcePlayer);
+        GameProfile firstProfile = TwinSession.createNewGameProfile(sourcePlayer);
+        GameProfile secondProfile = TwinSession.createNewGameProfile(sourcePlayer);
 
-        context.assertValueEqual(EXPECTED_NAME, joiningProfile.name(), Component.literal("Checking new player name"));
-        context.assertValueEqual(EXPECTED_UUID, joiningProfile.id(), Component.literal("Checking new player uuid"));
-        context.assertValueEqual(EXPECTED_PROPERTIES, joiningProfile.properties(), Component.literal("Checking new player texture property"));
+        context.assertValueEqual(EXPECTED_NAME, firstProfile.getName(), "Checking new player name");
+        context.assertValueEqual(SECOND_EXPECTED_NAME, secondProfile.getName(), "Checking new player name");
 
         TwinSession.getTwinMap().clear();
         context.succeed();
     }
 
-    @GameTest
+    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
     public void withoutPrefix(GameTestHelper context) {
         ModConfigs.PREFIX_WITH_NUMBER = false;
         GameProfile sourceProfile = new GameProfile(ORIGINAL_UUID, ORIGINAL_NAME);
@@ -65,28 +54,12 @@ public class CreateNewGameProfileTest {
 
         GameProfile joiningProfile = TwinSession.createNewGameProfile(sourcePlayer);
 
-        context.assertValueEqual(ORIGINAL_NAME, joiningProfile.name(), Component.literal("Checking new player name"));
-        context.assertValueEqual(EXPECTED_UUID, joiningProfile.id(), Component.literal("Checking new player uuid"));
+        context.assertValueEqual(ORIGINAL_NAME, joiningProfile.getName(), "Checking new player name");
+        context.assertValueEqual(EXPECTED_UUID, joiningProfile.getId(), "Checking new player uuid");
 
         TwinSession.getTwinMap().clear();
         ModConfigs.PREFIX_WITH_NUMBER = true;
         context.succeed();
     }
 
-    @GameTest
-    public void withTexturePropertyDisabledTest(GameTestHelper context) {
-        ModConfigs.COPY_TEXTURE = false;
-        GameProfile sourceProfile = new GameProfile(ORIGINAL_UUID, ORIGINAL_NAME, new PropertyMap(ORIGINAL_PROPERTIES));
-        FakePlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
-
-        GameProfile joiningProfile = TwinSession.createNewGameProfile(sourcePlayer);
-
-        context.assertValueEqual(EXPECTED_NAME, joiningProfile.name(), Component.literal("Checking new player name"));
-        context.assertValueEqual(EXPECTED_UUID, joiningProfile.id(), Component.literal("Checking new player uuid"));
-        context.assertValueEqual(ImmutableListMultimap.of(), joiningProfile.properties(), Component.literal("Checking new player texture property"));
-
-        TwinSession.getTwinMap().clear();
-        ModConfigs.COPY_TEXTURE = true;
-        context.succeed();
-    }
 }

@@ -1,6 +1,6 @@
-# TwinSession 1.4.1 (MC 1.21.11)
+# TwinSession 1.4.2 (MC 1.21.2 - MC1.21.4)
 
 **Updates:**
 
-- Updated to 1.21.11
-- Added GameTest test to assert SPAWN_NEAR_PLAYER_RADIUS config.
+- Added GameTest tests
+- Updated fabric.mod.json to include compatible minecraft versions

@@ -8,7 +8,6 @@ import com.twinsession.patch.LuckPermsPatch;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerLoginPacketListenerImpl;
-import net.minecraft.server.players.NameAndId;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.server.players.UserWhiteListEntry;
 import org.slf4j.Logger;
@@ -38,7 +37,7 @@ public abstract class ServerLoginPacketListenerImpl_TwinSessionMixin {
     @Inject(method = "verifyLoginAndFinishConnectionSetup", at = @At("HEAD"), cancellable = true)
     private void onVerifyLoginAndFinishConnectionSetup(GameProfile gameProfile, CallbackInfo ci) {
         PlayerList playerList = this.server.getPlayerList();
-        ServerPlayer serverPlayer = playerList.getPlayer(gameProfile.id());
+        ServerPlayer serverPlayer = playerList.getPlayer(gameProfile.getId());
 
         if (serverPlayer != null) {
             if (TwinSession.canJoin(serverPlayer)) {
@@ -48,25 +47,23 @@ public abstract class ServerLoginPacketListenerImpl_TwinSessionMixin {
 
                 this.authenticatedProfile = modifiedProfile;
                 LOGGER.info("Modified profile for duplicate login of {}: {} (New UUID: {})",
-                        gameProfile.name(), modifiedProfile.name(), modifiedProfile.id());
+                        gameProfile.getName(), modifiedProfile.getName(), modifiedProfile.getId());
 
                 // Add whitelist
-                NameAndId nameAndId = new NameAndId(gameProfile);
-                NameAndId modifiedProfileNameAndId = new NameAndId(modifiedProfile);
-                if (ModConfigs.AUTO_WHITELIST && playerList.isUsingWhitelist() && playerList.isWhiteListed(nameAndId)) {
-                    UserWhiteListEntry whitelistEntry = new UserWhiteListEntry(modifiedProfileNameAndId);
+                if (ModConfigs.AUTO_WHITELIST && playerList.isUsingWhitelist() && playerList.isWhiteListed(gameProfile)) {
+                    UserWhiteListEntry whitelistEntry = new UserWhiteListEntry(modifiedProfile);
                     playerList.getWhiteList().add(whitelistEntry);
                 }
 
                 // LuckPerms patch
-                LuckPermsPatch.playerJoined(gameProfile.id(), modifiedProfile.id());
+                LuckPermsPatch.playerJoined(gameProfile.getId(), modifiedProfile.getId());
 
                 this.finishLoginAndWaitForClient(modifiedProfile);
                 ci.cancel();
             } else {
-                LOGGER.info("Could not connect {} because of too many connections already", gameProfile.name());
+                LOGGER.info("Could not connect {} because of too many connections already", gameProfile.getName());
                 try {
-                    Objects.requireNonNull(playerList.getPlayer(gameProfile.id())).disconnect();
+                    Objects.requireNonNull(playerList.getPlayer(gameProfile.getId())).disconnect();
                 } catch (Exception e) {
                     LOGGER.error(e.getMessage(), e);
                 }
