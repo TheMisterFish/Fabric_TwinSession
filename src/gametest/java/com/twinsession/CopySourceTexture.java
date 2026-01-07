@@ -6,15 +6,15 @@ import com.mojang.authlib.properties.Property;
 import com.mojang.authlib.properties.PropertyMap;
 import com.twinsession.config.ModConfigs;
 import net.fabricmc.fabric.api.entity.FakePlayer;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 
 import java.util.UUID;
 
 public class CopySourceTexture {
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void withTextureTest(GameTestHelper context) {
         GameProfile sourceProfile = new GameProfile(UUID.randomUUID(), "withTexture");
 
@@ -31,15 +31,15 @@ public class CopySourceTexture {
         PropertyMap expectedProperties = new PropertyMap();
         expectedProperties.put("textures", new Property("test", "test"));
 
-        context.assertValueEqual("1_withTexture", joiningPlayer.getGameProfile().getName(), "Checking new player name");
-        context.assertValueEqual(expectedProperties, joiningPlayer.getGameProfile().getProperties(), "Checking new player texture property");
+        context.assertValueEqual("1_withTexture", joiningPlayer.getGameProfile().getName(), Component.nullToEmpty("Checking new player name"));
+        context.assertValueEqual(expectedProperties, joiningPlayer.getGameProfile().getProperties(), Component.nullToEmpty("Checking new player texture property"));
 
         TwinSession.getTwinMap().clear();
         context.succeed();
     }
 
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void withTexturePropertyDisabledTest(GameTestHelper context) {
         GameProfile sourceProfile = new GameProfile(UUID.randomUUID(), "withoutTexture");
 
@@ -55,8 +55,8 @@ public class CopySourceTexture {
         ModConfigs.COPY_TEXTURE = false;
         TwinSession.copySourceTexture(joiningPlayer);
 
-        context.assertValueEqual("1_withoutTexture", joiningPlayer.getGameProfile().getName(), "Checking new player name");
-        context.assertValueEqual(ImmutableListMultimap.of(), joiningPlayer.getGameProfile().getProperties(), "Checking new player texture property");
+        context.assertValueEqual("1_withoutTexture", joiningPlayer.getGameProfile().getName(), Component.nullToEmpty("Checking new player name"));
+        context.assertValueEqual(ImmutableListMultimap.of(), joiningPlayer.getGameProfile().getProperties(), Component.nullToEmpty("Checking new player texture property"));
 
         TwinSession.getTwinMap().clear();
         ModConfigs.COPY_TEXTURE = true;
