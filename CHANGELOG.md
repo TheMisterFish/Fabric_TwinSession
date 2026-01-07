@@ -1,4 +1,4 @@
-# TwinSession 1.4.2 (MC 1.20 - MC 1.20.1)
+# TwinSession 1.4.2 (MC 1.20.2 - MC 1.20.6)
 
 **Updates:**
 
