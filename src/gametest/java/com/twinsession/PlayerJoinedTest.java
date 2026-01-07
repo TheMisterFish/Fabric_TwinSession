@@ -3,9 +3,9 @@ package com.twinsession;
 import com.mojang.authlib.GameProfile;
 import com.twinsession.config.ModConfigs;
 import net.fabricmc.fabric.api.entity.FakePlayer;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.GameType;
@@ -20,7 +20,7 @@ public class PlayerJoinedTest {
     private final GameProfile sourceProfile = new GameProfile(ORIGINAL_UUID, "MisterFish_");
     private final GameProfile joiningProfile = new GameProfile(EXPECTED_UUID, "1_MisterFish_");
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void playerJoinedSurvivalNoOpTest(GameTestHelper context) {
         ServerPlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
         sourcePlayer.setGameMode(GameType.SURVIVAL);
@@ -37,11 +37,10 @@ public class PlayerJoinedTest {
         context.assertValueEqual(
                 sourcePlayer.gameMode.getGameModeForPlayer(),
                 joiningPlayer.gameMode.getGameModeForPlayer(),
-                "Checking gamemode copy"
-        );
+                Component.nullToEmpty("Checking gamemode copy"));
 
         context.assertFalse(context.getLevel().getServer().getPlayerList().isOp(joiningPlayer.getGameProfile()),
-                "Checking op status copy");
+                Component.nullToEmpty("Checking op status copy"));
 
         TwinSession.getTwinMap().clear();
         context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(sourceProfile);
@@ -49,7 +48,7 @@ public class PlayerJoinedTest {
         context.succeed();
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void playerJoinedCreativeWithOpTest(GameTestHelper context) {
         ServerPlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
         sourcePlayer.setGameMode(GameType.CREATIVE);
@@ -68,11 +67,10 @@ public class PlayerJoinedTest {
         context.assertValueEqual(
                 sourcePlayer.gameMode.getGameModeForPlayer(),
                 joiningPlayer.gameMode.getGameModeForPlayer(),
-                "Checking gamemode copy"
-        );
+                Component.nullToEmpty("Checking gamemode copy"));
 
         context.assertTrue(context.getLevel().getServer().getPlayerList().isOp(joiningPlayer.getGameProfile()),
-                "Checking op status copy");
+                Component.nullToEmpty("Checking op status copy"));
 
         TwinSession.getTwinMap().clear();
         context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(sourceProfile);
@@ -82,7 +80,7 @@ public class PlayerJoinedTest {
         context.succeed();
     }
 
-    @GameTest(template = FabricGameTest.EMPTY_STRUCTURE)
+    @GameTest
     public void playerJoinedCheckLocation(GameTestHelper context) {
         ModConfigs.SPAWN_NEAR_PLAYER_RADIUS = 3;
         ServerPlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
@@ -97,7 +95,7 @@ public class PlayerJoinedTest {
         ServerPlayer joiningPlayer = FakePlayer.get(context.getLevel(), joiningProfile);
         TwinSession.playerJoined(joiningPlayer);
 
-        context.assertTrue(sourcePlayer.position().distanceTo(joiningPlayer.position()) <= ModConfigs.SPAWN_NEAR_PLAYER_RADIUS + 1, "Players are too far apart");
+        context.assertTrue(sourcePlayer.position().distanceTo(joiningPlayer.position()) <= ModConfigs.SPAWN_NEAR_PLAYER_RADIUS + 1, Component.nullToEmpty("Players are too far apart"));
 
         ModConfigs.SPAWN_NEAR_PLAYER_RADIUS = 10;
 
