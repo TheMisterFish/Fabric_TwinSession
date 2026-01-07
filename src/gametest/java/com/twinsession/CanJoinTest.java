@@ -19,7 +19,7 @@ public class CanJoinTest {
         GameProfile sourceProfile = new GameProfile(ORIGINAL_UUID, ORIGINAL_NAME);
         FakePlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
 
-        context.assertTrue(TwinSession.canJoin(sourcePlayer), Component.nullToEmpty("Checking if player can join"));
+        context.assertTrue(TwinSession.canJoin(sourcePlayer), Component.literal("Checking if player can join"));
         context.succeed();
     }
 
@@ -29,7 +29,7 @@ public class CanJoinTest {
         FakePlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
         TwinSession.getTwinMap().computeIfAbsent(ORIGINAL_UUID, key -> new HashMap<>());
 
-        context.assertTrue(TwinSession.canJoin(sourcePlayer), Component.nullToEmpty("Checking if second player can join"));
+        context.assertTrue(TwinSession.canJoin(sourcePlayer), Component.literal("Checking if second player can join"));
 
         TwinSession.getTwinMap().clear();
         context.succeed();
@@ -46,7 +46,7 @@ public class CanJoinTest {
         GameProfile sourceProfile = new GameProfile(ORIGINAL_UUID, ORIGINAL_NAME);
         FakePlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
 
-        context.assertFalse(TwinSession.canJoin(sourcePlayer), Component.nullToEmpty("Checking if 9th player cannot join"));
+        context.assertFalse(TwinSession.canJoin(sourcePlayer), Component.literal("Checking if 9th player cannot join"));
 
         TwinSession.getTwinMap().clear();
         context.succeed();

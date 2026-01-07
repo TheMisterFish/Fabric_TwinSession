@@ -1,15 +1,19 @@
 package com.twinsession;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import com.twinsession.config.ModConfigs;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Abilities;
@@ -48,7 +52,7 @@ public class TwinSession implements ModInitializer {
 
     public static GameProfile createNewGameProfile(ServerPlayer sourcePlayer) {
         GameProfile gameProfile = sourcePlayer.getGameProfile();
-        UUID originalUUID = gameProfile.getId();
+        UUID originalUUID = gameProfile.id();
 
         Map<Integer, UUID> uuidMap = twinMap.computeIfAbsent(originalUUID, key -> new HashMap<>());
 
@@ -57,40 +61,24 @@ public class TwinSession implements ModInitializer {
             nextPosition++;
         }
 
-        String newName = StringUtils.left(nextPosition + "_" + gameProfile.getName(), 16);
+        String newName = StringUtils.left(nextPosition + "_" + gameProfile.name(), 16);
         UUID newUUID = generateUUIDFromName(newName + "$");
 
         uuidMap.put(nextPosition, newUUID);
 
-        String nameToUse = ModConfigs.PREFIX_WITH_NUMBER ? newName : gameProfile.getName();
+        String nameToUse = ModConfigs.PREFIX_WITH_NUMBER ? newName : gameProfile.name();
+
+        if (ModConfigs.COPY_TEXTURE) {
+            Multimap<String, Property> map = ArrayListMultimap.create();
+
+            sourcePlayer.getGameProfile().properties().get("textures")
+                    .forEach(property -> map.put("textures", property));
+
+            return new GameProfile(newUUID, nameToUse, new PropertyMap(map));
+        }
 
         return new GameProfile(newUUID, nameToUse);
     }
-
-    public static void copySourceTexture(ServerPlayer joiningPlayer) {
-        if (!ModConfigs.COPY_TEXTURE) {
-            return;
-        }
-
-        ServerPlayer sourcePlayer = getSourcePlayer(joiningPlayer);
-
-        if (sourcePlayer != null) {
-            sourcePlayer.getGameProfile().getProperties().get("textures")
-                    .forEach(property -> joiningPlayer.getGameProfile().getProperties().put("textures", property));
-            MinecraftServer server = joiningPlayer.getServer();
-
-            server.getPlayerList().broadcastAll(new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME, joiningPlayer));
-
-            for (ServerPlayer otherPlayer : server.getPlayerList().getPlayers()) {
-                if (otherPlayer != joiningPlayer) {
-                    otherPlayer.connection.send(new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LATENCY, joiningPlayer));
-                    joiningPlayer.connection.send(new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LATENCY, otherPlayer));
-                }
-            }
-            joiningPlayer.connection.send(new ClientboundPlayerInfoUpdatePacket(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_LATENCY, joiningPlayer));
-        }
-    }
-
 
     public static void playerJoined(@NotNull ServerPlayer joiningPlayer) {
         joiningPlayer.level().getServer();
@@ -101,7 +89,7 @@ public class TwinSession implements ModInitializer {
             copyPlayerOpStatus(sourcePlayer, joiningPlayer);
             copyPlayerGamemode(sourcePlayer, joiningPlayer);
 
-            if (ModConfigs.SPAWN_NEAR_PLAYER && !playerDataExists(joiningPlayer.level().getServer(), joiningPlayer.getGameProfile().getId())) {
+            if (ModConfigs.SPAWN_NEAR_PLAYER && !playerDataExists(joiningPlayer.level().getServer(), joiningPlayer.getGameProfile().id())) {
                 spawnPlayerNearby(joiningPlayer, sourcePlayer);
             }
         }
@@ -116,7 +104,7 @@ public class TwinSession implements ModInitializer {
     }
 
     public static void playerLeft(ServerPlayer serverPlayer) {
-        UUID playerUUID = serverPlayer.getGameProfile().getId();
+        UUID playerUUID = serverPlayer.getGameProfile().id();
         List<UUID> keysToRemove = new ArrayList<>();
 
         twinMap.forEach((originalUUID, uuidMap) -> {
@@ -141,7 +129,7 @@ public class TwinSession implements ModInitializer {
     }
 
     private static ServerPlayer getSourcePlayer(ServerPlayer joiningPlayer) {
-        UUID searchUUID = joiningPlayer.getGameProfile().getId();
+        UUID searchUUID = joiningPlayer.getGameProfile().id();
 
         for (Map.Entry<UUID, Map<Integer, UUID>> entry : twinMap.entrySet()) {
             Map<Integer, UUID> uuidMap = entry.getValue();
@@ -189,8 +177,10 @@ public class TwinSession implements ModInitializer {
         }
 
         PlayerList playerList = target.level().getServer().getPlayerList();
-        if (playerList.isOp(source.getGameProfile())) {
-            playerList.op(target.getGameProfile());
+        NameAndId sourceNameAndId = new NameAndId(source.getGameProfile());
+        NameAndId targetNameAndId = new NameAndId(target.getGameProfile());
+        if (playerList.isOp(sourceNameAndId)) {
+            playerList.op(targetNameAndId);
         }
     }
 
@@ -300,7 +290,7 @@ public class TwinSession implements ModInitializer {
     }
 
     @VisibleForTesting
-    public static Map<UUID, Map<Integer, UUID>> getTwinMap() {
+    public static Map<UUID, Map<Integer, UUID>> getTwinMap(){
         return twinMap;
     }
 }
