@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.GameType;
 
@@ -37,14 +38,17 @@ public class PlayerJoinedTest {
         context.assertValueEqual(
                 sourcePlayer.gameMode.getGameModeForPlayer(),
                 joiningPlayer.gameMode.getGameModeForPlayer(),
-                Component.nullToEmpty("Checking gamemode copy"));
+                Component.literal("Checking gamemode copy")
+        );
 
-        context.assertFalse(context.getLevel().getServer().getPlayerList().isOp(joiningPlayer.getGameProfile()),
-                Component.nullToEmpty("Checking op status copy"));
+        NameAndId joiningNameAndId = new NameAndId(joiningPlayer.getGameProfile());
+        context.getLevel().getServer().getPlayerList().isOp(joiningNameAndId);
+        context.assertFalse(context.getLevel().getServer().getPlayerList().isOp(joiningNameAndId),
+                Component.literal("Checking op status copy"));
 
         TwinSession.getTwinMap().clear();
-        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(sourceProfile);
-        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(joiningProfile);
+        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(ORIGINAL_UUID);
+        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(EXPECTED_UUID);
         context.succeed();
     }
 
@@ -55,7 +59,8 @@ public class PlayerJoinedTest {
         TwinSession.getTwinMap().put(ORIGINAL_UUID, new HashMap<>());
         context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false, Entity.RemovalReason.CHANGED_DIMENSION);
 
-        context.getLevel().getServer().getPlayerList().op(sourcePlayer.getGameProfile());
+        NameAndId sourceNameAndId = new NameAndId(sourcePlayer.getGameProfile());
+        context.getLevel().getServer().getPlayerList().op(sourceNameAndId);
 
         Map<Integer, UUID> twins = new HashMap<>();
         twins.put(0, EXPECTED_UUID);
@@ -67,16 +72,18 @@ public class PlayerJoinedTest {
         context.assertValueEqual(
                 sourcePlayer.gameMode.getGameModeForPlayer(),
                 joiningPlayer.gameMode.getGameModeForPlayer(),
-                Component.nullToEmpty("Checking gamemode copy"));
+                Component.literal("Checking gamemode copy")
+        );
 
-        context.assertTrue(context.getLevel().getServer().getPlayerList().isOp(joiningPlayer.getGameProfile()),
-                Component.nullToEmpty("Checking op status copy"));
+        NameAndId joiningNameAndId = new NameAndId(joiningPlayer.getGameProfile());
+        context.assertTrue(context.getLevel().getServer().getPlayerList().isOp(joiningNameAndId),
+                Component.literal("Checking op status copy"));
 
         TwinSession.getTwinMap().clear();
-        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(sourceProfile);
-        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(joiningProfile);
-        context.getLevel().getServer().getPlayerList().deop(sourcePlayer.getGameProfile());
-        context.getLevel().getServer().getPlayerList().deop(joiningPlayer.getGameProfile());
+        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(ORIGINAL_UUID);
+        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(EXPECTED_UUID);
+        context.getLevel().getServer().getPlayerList().deop(sourceNameAndId);
+        context.getLevel().getServer().getPlayerList().deop(joiningNameAndId);
         context.succeed();
     }
 
@@ -95,13 +102,13 @@ public class PlayerJoinedTest {
         ServerPlayer joiningPlayer = FakePlayer.get(context.getLevel(), joiningProfile);
         TwinSession.playerJoined(joiningPlayer);
 
-        context.assertTrue(sourcePlayer.position().distanceTo(joiningPlayer.position()) <= ModConfigs.SPAWN_NEAR_PLAYER_RADIUS + 1, Component.nullToEmpty("Players are too far apart"));
+        context.assertTrue( sourcePlayer.position().distanceTo(joiningPlayer.position()) <= ModConfigs.SPAWN_NEAR_PLAYER_RADIUS + 1, Component.nullToEmpty("Players are too far apart"));
 
         ModConfigs.SPAWN_NEAR_PLAYER_RADIUS = 10;
 
         TwinSession.getTwinMap().clear();
-        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(sourceProfile);
-        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(joiningProfile);
+        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(ORIGINAL_UUID);
+        context.getLevel().getServer().getPlayerList().disconnectAllPlayersWithProfile(EXPECTED_UUID);
         context.succeed();
     }
 }

@@ -30,11 +30,11 @@ public class PlayerLeftTest {
 
         context.assertTrue(
                 TwinSession.getTwinMap().containsKey(ORIGINAL_UUID),
-                Component.nullToEmpty("Original key should remain")
+                Component.literal("Original key should remain")
         );
         context.assertFalse(
                 TwinSession.getTwinMap().get(ORIGINAL_UUID).containsValue(twinUUID),
-                Component.nullToEmpty("Twin UUID should be removed")
+                Component.literal("Twin UUID should be removed")
         );
 
         TwinSession.getTwinMap().clear();
@@ -55,7 +55,7 @@ public class PlayerLeftTest {
 
         context.assertFalse(
                 TwinSession.getTwinMap().containsKey(ORIGINAL_UUID),
-                Component.nullToEmpty("Original key should be removed when no twins remain")
+                Component.literal("Original key should be removed when no twins remain")
         );
 
         TwinSession.getTwinMap().clear();
@@ -73,7 +73,7 @@ public class PlayerLeftTest {
 
         context.assertTrue(
                 TwinSession.getTwinMap().isEmpty(),
-                Component.nullToEmpty("Twin map should remain empty when player not found")
+                Component.literal("Twin map should remain empty when player not found")
         );
 
         context.succeed();
