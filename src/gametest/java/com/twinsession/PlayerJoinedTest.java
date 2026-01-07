@@ -25,7 +25,7 @@ public class PlayerJoinedTest {
         ServerPlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
         sourcePlayer.setGameMode(GameType.SURVIVAL);
         TwinSession.getTwinMap().put(ORIGINAL_UUID, new HashMap<>());
-        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false);
+        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false, Entity.RemovalReason.DISCARDED);
 
         Map<Integer, UUID> twins = new HashMap<>();
         twins.put(0, EXPECTED_UUID);
@@ -53,7 +53,7 @@ public class PlayerJoinedTest {
         ServerPlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
         sourcePlayer.setGameMode(GameType.CREATIVE);
         TwinSession.getTwinMap().put(ORIGINAL_UUID, new HashMap<>());
-        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false);
+        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false, Entity.RemovalReason.DISCARDED);
 
         context.getLevel().getServer().getPlayerList().op(sourcePlayer.getGameProfile());
 
@@ -86,7 +86,7 @@ public class PlayerJoinedTest {
         ServerPlayer sourcePlayer = FakePlayer.get(context.getLevel(), sourceProfile);
         sourcePlayer.setGameMode(GameType.CREATIVE);
         TwinSession.getTwinMap().put(ORIGINAL_UUID, new HashMap<>());
-        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false);
+        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false, Entity.RemovalReason.DISCARDED);
 
         Map<Integer, UUID> twins = new HashMap<>();
         twins.put(0, EXPECTED_UUID);

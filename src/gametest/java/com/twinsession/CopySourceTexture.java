@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.Entity;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -20,7 +21,7 @@ public class CopySourceTexture {
         sourcePlayer.getGameProfile().getProperties().put("textures", new Property("test", "test"));
         sourcePlayer.getGameProfile().getProperties().put("junk", new Property("test", "test"));
 
-        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false);
+        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false, Entity.RemovalReason.DISCARDED);
 
         GameProfile joiningProfile = TwinSession.createNewGameProfile(sourcePlayer.getGameProfile());
         FakePlayer joiningPlayer = FakePlayer.get(context.getLevel(), joiningProfile);
@@ -45,7 +46,7 @@ public class CopySourceTexture {
         sourcePlayer.getGameProfile().getProperties().put("textures", new Property("test", "test"));
         sourcePlayer.getGameProfile().getProperties().put("junk", new Property("test", "test"));
 
-        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false);
+        context.getLevel().getServer().getPlayerList().respawn(sourcePlayer, false, Entity.RemovalReason.DISCARDED);
 
         GameProfile joiningProfile = TwinSession.createNewGameProfile(sourcePlayer.getGameProfile());
         FakePlayer joiningPlayer = FakePlayer.get(context.getLevel(), joiningProfile);
