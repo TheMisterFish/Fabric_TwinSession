@@ -47,19 +47,17 @@ jobs:
         run: |
           BRANCH=$(git rev-parse --abbrev-ref HEAD)
           COMMIT=$(git rev-parse --short HEAD)
-          DATE=$(date -u +"%Y-%m-%d")
-          DATE_DOTS=$(date -u +"%Y.%m.%d")
           TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+          DATE_TIME=$(date -u +"%Y.%m.%d-%H%M")
           JAVA=$(java -version 2>&1 | head -n 1)
           MC_VERSION=$(grep '^works_for_version' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
 
-          FOLDER_NAME="${MC_VERSION}-${DATE_DOTS}"
-          WIKI_PAGE="JaCoCo-report-Mc-version-${MC_VERSION}-${DATE_DOTS}"
-          WIKI_TITLE="JaCoCo report Mc version ${MC_VERSION} - ${DATE_DOTS}"
+          FOLDER_NAME="${MC_VERSION}-${DATE_TIME}"
+          WIKI_PAGE="JaCoCo-report-Mc-version-${MC_VERSION}-${DATE_TIME}"
+          WIKI_TITLE="JaCoCo report Mc version ${MC_VERSION} - ${DATE_TIME}"
 
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
           echo "commit=$COMMIT" >> $GITHUB_OUTPUT
-          echo "date=$DATE" >> $GITHUB_OUTPUT
           echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
           echo "java=$JAVA" >> $GITHUB_OUTPUT
           echo "mc_version=$MC_VERSION" >> $GITHUB_OUTPUT
@@ -71,6 +69,16 @@ jobs:
         run: |
           mkdir -p "deploy/${{ steps.meta.outputs.folder_name }}"
           cp -r build/reports/jacocoRunGameTestHtml/* "deploy/${{ steps.meta.outputs.folder_name }}/"
+
+      - name: Generate root index.html
+        run: |
+          echo "<h1>Available Coverage Reports</h1>" > deploy/index.html
+          echo "<ul>" >> deploy/index.html
+          for d in deploy/*/ ; do
+            folder=$(basename "$d")
+            echo "<li><a href=\"${folder}/index.html\">${folder}</a></li>" >> deploy/index.html
+          done
+          echo "</ul>" >> deploy/index.html
 
       - name: Upload JaCoCo HTML artifact
         uses: actions/upload-pages-artifact@v3
@@ -112,7 +120,6 @@ jobs:
           REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${FOLDER}/index.html"
 
           cat > "wiki/${PAGE}.md" <<EOF
-          
           **Branch:** ${BRANCH}  
           **Commit:** ${COMMIT}  
           **Tested at:** ${TIMESTAMP}  
@@ -124,7 +131,6 @@ jobs:
           ## Full HTML Report (GitHub Pages)
           
           [Open JaCoCo HTML Report](${REPORT_URL})
-          
           EOF
 
       - name: Commit & push wiki changes
