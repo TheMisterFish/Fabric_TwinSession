@@ -1,0 +1,140 @@
+name: Coverage Report
+on: [ workflow_dispatch ]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      folder_name: ${{ steps.meta.outputs.folder_name }}
+      wiki_page: ${{ steps.meta.outputs.wiki_page }}
+      wiki_title: ${{ steps.meta.outputs.wiki_title }}
+      branch: ${{ steps.meta.outputs.branch }}
+      commit: ${{ steps.meta.outputs.commit }}
+      timestamp: ${{ steps.meta.outputs.timestamp }}
+      java: ${{ steps.meta.outputs.java }}
+      mc_version: ${{ steps.meta.outputs.mc_version }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle.properties') }}
+
+      - name: Run all tests with coverage
+        run: ./gradlew runGameTestWithCoverage jacocoTestReport --stacktrace
+
+      - name: Extract metadata
+        id: meta
+        run: |
+          BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          COMMIT=$(git rev-parse --short HEAD)
+          DATE=$(date -u +"%Y-%m-%d")
+          DATE_DOTS=$(date -u +"%Y.%m.%d")
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+          JAVA=$(java -version 2>&1 | head -n 1)
+          MC_VERSION=$(grep '^works_for_version' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+
+          FOLDER_NAME="${MC_VERSION}-${DATE_DOTS}"
+          WIKI_PAGE="JaCoCo-report-Mc-version-${MC_VERSION}-${DATE_DOTS}"
+          WIKI_TITLE="JaCoCo report Mc version ${MC_VERSION} - ${DATE_DOTS}"
+
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "commit=$COMMIT" >> $GITHUB_OUTPUT
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "java=$JAVA" >> $GITHUB_OUTPUT
+          echo "mc_version=$MC_VERSION" >> $GITHUB_OUTPUT
+          echo "folder_name=$FOLDER_NAME" >> $GITHUB_OUTPUT
+          echo "wiki_page=$WIKI_PAGE" >> $GITHUB_OUTPUT
+          echo "wiki_title=$WIKI_TITLE" >> $GITHUB_OUTPUT
+
+      - name: Prepare artifact folder structure
+        run: |
+          mkdir -p "deploy/${{ steps.meta.outputs.folder_name }}"
+          cp -r build/reports/jacocoRunGameTestHtml/* "deploy/${{ steps.meta.outputs.folder_name }}/"
+
+      - name: Upload JaCoCo HTML artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: deploy
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy-pages.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deploy-pages
+        uses: actions/deploy-pages@v4
+
+  update-wiki:
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone wiki repo
+        run: |
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git wiki
+
+      - name: Create wiki page linking to GitHub Pages report
+        run: |
+          PAGE="${{ needs.build.outputs.wiki_page }}"
+          TITLE="${{ needs.build.outputs.wiki_title }}"
+          BRANCH="${{ needs.build.outputs.branch }}"
+          COMMIT="${{ needs.build.outputs.commit }}"
+          TIMESTAMP="${{ needs.build.outputs.timestamp }}"
+          JAVA="${{ needs.build.outputs.java }}"
+          MC_VERSION="${{ needs.build.outputs.mc_version }}"
+          FOLDER="${{ needs.build.outputs.folder_name }}"
+
+          REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${FOLDER}/index.html"
+
+          cat > "wiki/${PAGE}.md" <<EOF
+          
+          **Branch:** ${BRANCH}  
+          **Commit:** ${COMMIT}  
+          **Tested at:** ${TIMESTAMP}  
+          **Java:** ${JAVA}  
+          **Minecraft:** ${MC_VERSION}
+          
+          ---
+          
+          ## Full HTML Report (GitHub Pages)
+          
+          [Open JaCoCo HTML Report](${REPORT_URL})
+          
+          EOF
+
+      - name: Commit & push wiki changes
+        run: |
+          PAGE="${{ needs.build.outputs.wiki_page }}"
+
+          cd wiki
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add "${PAGE}.md"
+          git commit -m "Coverage report: ${PAGE}" || echo "Nothing to commit"
+          git push || echo "Nothing to push"
