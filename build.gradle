@@ -1,11 +1,11 @@
 plugins {
-	id 'fabric-loom' version "${loom_version}"
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
 	id 'maven-publish'
-	id 'io.github.juuxel.loom-quiltflower' version '1.7.3'
-	id 'io.freefair.lombok' version '8.6'
+	id 'jacoco'
+	id 'io.freefair.lombok' version "${lombok_version}"
 }
 
-version = project.mod_version + "_" + project.minecraft_version
+version = project.mod_version + "_" + project.works_for_version
 group = project.maven_group
 
 base {
@@ -18,18 +18,18 @@ repositories {
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
-	mavenCentral()
+	maven {
+		url = "https://api.modrinth.com/maven"
+	}
 }
 
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings loom.officialMojangMappings()
-
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	// LuckyPerms patch
 	compileOnly "net.luckperms:api:${project.luckperms_version}"
@@ -44,7 +44,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release = 25
 }
 
 java {
@@ -53,12 +53,16 @@ java {
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
 }
 
 test {
 	useJUnitPlatform()
+}
+
+jacoco {
+	toolVersion = "${project.jacoco_version}"
 }
 
 fabricApi {
@@ -66,6 +70,67 @@ fabricApi {
 		createSourceSet = true
 		modId = "gametest-${project.name}"
 		eula = true
+	}
+}
+
+
+def runGameTestExec = file("$buildDir/jacoco/runGameTest.exec")
+def mixinExclude = '**/twinsession/mixin/**'
+
+tasks.matching { it.name == 'runGameTest' && it instanceof JavaExec }.configureEach {
+	doFirst {
+		// create a detached configuration for the agent and resolve it only now
+		def agentDep = dependencies.create("org.jacoco:org.jacoco.agent:${project.jacoco_version}:runtime@jar")
+		def agentConfig = configurations.detachedConfiguration(agentDep)
+		def agentFile = agentConfig.singleFile
+
+		if (!agentFile.exists()) {
+			throw new GradleException("JaCoCo agent not found: ${agentFile}")
+		}
+
+		jvmArgs += "-javaagent:${agentFile}=destfile=${runGameTestExec},append=false"
+		logger.lifecycle("JaCoCo agent attached to runGameTest -> ${runGameTestExec}")
+	}
+}
+
+tasks.register('jacocoRunGameTestReport', JacocoReport) {
+	group = 'verification'
+	description = 'Generates JaCoCo report for runGameTest execution'
+
+	executionData.setFrom(files(runGameTestExec))
+	def mainOutput = project.sourceSets.main.output
+
+	classDirectories.setFrom(files(mainOutput.classesDirs.files.collect { dir ->
+		fileTree(dir: dir, exclude: mixinExclude)
+	}))
+
+	sourceDirectories.setFrom(project.sourceSets.main.allSource.srcDirs)
+
+	reports {
+		html.required.set(true)
+		xml.required.set(false)
+		csv.required.set(false)
+		html.outputLocation.set(layout.buildDirectory.dir('reports/jacocoRunGameTestHtml'))
+	}
+}
+
+tasks.register('runGameTestWithCoverage') {
+	group = 'verification'
+	description = 'Runs runGameTest with JaCoCo agent and generates coverage report'
+	dependsOn 'runGameTest'
+	finalizedBy 'jacocoRunGameTestReport'
+}
+
+// Only run GameTest when running below tasks;
+// We skip the build as GameTest are sometimes flaky.
+tasks.named('runGameTest') {
+	onlyIf {
+		gradle.startParameter.taskNames.any {
+			it == 'runGameTest' ||
+					it.endsWith(':runGameTest') ||
+					it == 'runGameTestWithCoverage' ||
+					it.endsWith(':runGameTestWithCoverage')
+		}
 	}
 }
 
@@ -79,7 +144,6 @@ jar {
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
-			artifactId = project.archives_base_name
 			from components.java
 		}
 	}
