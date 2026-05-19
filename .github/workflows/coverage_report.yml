@@ -38,7 +38,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle.properties') }}
 
       - name: Run all tests with coverage
-        run: ./gradlew runAllTestsWithCoverage jacocoTestReport --stacktrace
+        run: ./gradlew runGameTestWithCoverage jacocoTestReport --stacktrace
 
       - name: Extract metadata
         id: meta
