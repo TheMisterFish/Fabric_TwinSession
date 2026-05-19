@@ -108,11 +108,9 @@ jobs:
             echo "gh-pages does not exist. Creating it."
       
             rm -rf .git
-      
             git init
             git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
             git checkout --orphan gh-pages
-      
             git rm -rf . || true
       
             git config user.name "github-actions"
@@ -121,19 +119,16 @@ jobs:
             touch .nojekyll
             git add .nojekyll
             git commit -m "Initialise gh-pages"
-      
             git push --set-upstream origin gh-pages
       
           else
             echo "gh-pages exists. Checking it out."
       
-            rm -rf .git
-            git init
-            git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+            find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+      
             git fetch origin gh-pages
             git checkout gh-pages
           fi
-
 
       - name: Copy new report into gh-pages
         run: |
