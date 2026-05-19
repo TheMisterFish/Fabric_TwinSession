@@ -3,8 +3,6 @@ on: [ workflow_dispatch ]
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   build:
@@ -39,19 +37,8 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle.properties') }}
 
-      - name: Run all tests with coverage (3 retries)
-        run: |
-          for i in 1 2 3; do
-            echo "Attempt $i..."
-            ./gradlew runGameTestWithCoverage jacocoTestReport --stacktrace && break
-            if [ $i -lt 3 ]; then
-              echo "Retrying in 10 seconds..."
-              sleep 10
-            else
-              echo "All attempts failed."
-              exit 1
-            fi
-          done
+      - name: Run all tests with coverage
+        run: ./gradlew runAllTestsWithCoverage jacocoTestReport --stacktrace
 
       - name: Extract metadata
         id: meta
@@ -76,40 +63,102 @@ jobs:
           echo "wiki_page=$WIKI_PAGE" >> $GITHUB_OUTPUT
           echo "wiki_title=$WIKI_TITLE" >> $GITHUB_OUTPUT
 
-      - name: Prepare artifact folder structure
-        run: |
-          mkdir -p deploy
-          mkdir -p "deploy/${{ steps.meta.outputs.folder_name }}"
-          cp -r build/reports/jacocoRunGameTestHtml/* "deploy/${{ steps.meta.outputs.folder_name }}/"
-
-      - name: Generate root index.html (preserve history)
-        run: |
-          echo "<h1>Available Coverage Reports - TwinSession</h1>" > deploy/index.html
-          echo "<ul>" >> deploy/index.html
-          for d in deploy/*/ ; do
-            folder=$(basename "$d")
-            if [ "$folder" != "index.html" ]; then
-              echo "<li><a href=\"${folder}/index.html\">${folder}</a></li>" >> deploy/index.html
-            fi
-          done
-          echo "</ul>" >> deploy/index.html
-
-      - name: Upload JaCoCo HTML artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Upload JaCoCo HTML as artifact
+        uses: actions/upload-artifact@v4
         with:
-          path: deploy
+          name: jacoco-report
+          path: build/reports/jacocoRunGameTestHtml/
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy-pages.outputs.page_url }}
 
     steps:
-      - name: Deploy to GitHub Pages
-        id: deploy-pages
-        uses: actions/deploy-pages@v4
+      - name: Download JaCoCo HTML artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: jacoco-report
+          path: new-report/
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+        continue-on-error: true
+
+      - name: Initialise gh-pages branch if it doesn't exist yet
+        run: |
+          if [ ! -d "gh-pages/.git" ]; then
+            mkdir -p gh-pages
+            cd gh-pages
+            git init
+            git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+            git checkout --orphan gh-pages
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            touch .nojekyll
+            git add .nojekyll
+            git commit -m "Initialise gh-pages"
+            git push origin gh-pages
+          fi
+
+      - name: Copy new report into gh-pages
+        run: |
+          FOLDER="${{ needs.build.outputs.folder_name }}"
+          mkdir -p "gh-pages/${FOLDER}"
+          cp -r new-report/* "gh-pages/${FOLDER}/"
+
+      - name: Regenerate root index.html from all existing folders
+        run: |
+          cd gh-pages
+
+          # Collect all report folders (directories containing an index.html), sorted newest-first
+          FOLDERS=$(find . -mindepth 2 -maxdepth 2 -name "index.html" \
+            | sed 's|^\./||' \
+            | sed 's|/index.html||' \
+            | sort -r)
+
+          cat > index.html <<'HTML'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>JaCoCo Coverage Reports - TwinSession</title>
+            <style>
+              body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+              h1 { border-bottom: 2px solid #333; padding-bottom: 10px; }
+              ul { list-style: none; padding: 0; }
+              li { margin: 8px 0; }
+              a { text-decoration: none; color: #0366d6; font-size: 1.05em; }
+              a:hover { text-decoration: underline; }
+            </style>
+          </head>
+          <body>
+            <h1>JaCoCo Coverage Reports - TwinSession</h1>
+            <ul>
+          HTML
+
+          for FOLDER in $FOLDERS; do
+            echo "    <li><a href=\"${FOLDER}/index.html\">${FOLDER}</a></li>" >> index.html
+          done
+
+          cat >> index.html <<'HTML'
+            </ul>
+          </body>
+          </html>
+          HTML
+
+      - name: Commit and push to gh-pages
+        run: |
+          FOLDER="${{ needs.build.outputs.folder_name }}"
+          cd gh-pages
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add "${FOLDER}/" index.html
+          git commit -m "Coverage report: ${FOLDER}" || echo "Nothing to commit"
+          git push origin gh-pages || echo "Nothing to push"
 
   update-wiki:
     needs: [build, deploy]
