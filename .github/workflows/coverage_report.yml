@@ -209,6 +209,11 @@ jobs:
           REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${FOLDER}/index.html"
 
           mkdir -p "wiki/jacoco-reports"
+
+          cd wiki
+          git add jacoco-reports
+          git commit -m "Ensure jacoco-reports folder exists" || true
+          cd ..
           
           cat > "wiki/jacoco-reports/${PAGE}.md" <<EOF
           **Branch:** ${BRANCH}  
@@ -247,8 +252,7 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
       
-          # Add the new report page AND the updated Home.md
-          git add "jacoco-reports/${PAGE}.md" Home.md
+          git add jacoco-reports Home.md
       
           git commit -m "Coverage report: ${PAGE}" || echo "Nothing to commit"
           git push || echo "Nothing to push"
