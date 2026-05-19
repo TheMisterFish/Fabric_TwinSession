@@ -226,12 +226,14 @@ jobs:
         run: |
           cd wiki
       
-          echo "**Available JaCoCo Coverage Reports**" > Home.md
+          echo "## Available Coverage Reports" > Home.md
           echo "" >> Home.md
           echo "| Minecraft Version | Timestamp | Report |" >> Home.md
           echo "|------------------|-----------|--------|" >> Home.md
       
-          for FOLDER in $(git ls-remote --heads https://github.com/${{ github.repository }}.git gh-pages | awk '{print $2}' | sed 's|refs/heads/gh-pages||' >/dev/null; cd ../gh-pages; ls -1d */ | sed 's|/||' | sort -r); do
+          for PAGE in $(ls -1 JaCoCo-report-Mc-version-*.md | sort -r); do
+            FOLDER=$(echo "$PAGE" | sed -E 's/^JaCoCo-report-Mc-version-(.*)\.md/\1/')
+      
             MC=$(echo "$FOLDER" | cut -d'-' -f1)
             GAME=$(echo "$FOLDER" | cut -d'-' -f2)
             TIME=$(echo "$FOLDER" | cut -d'-' -f3-)
