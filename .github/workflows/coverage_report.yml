@@ -176,7 +176,6 @@ jobs:
           </html>
           HTML
 
-
       - name: Commit and push to gh-pages
         run: |
           FOLDER="${{ needs.build.outputs.folder_name }}"
@@ -222,6 +221,28 @@ jobs:
           
           [Open JaCoCo HTML Report](${REPORT_URL})
           EOF
+
+      - name: Update main wiki page with table of reports
+        run: |
+          cd wiki
+      
+          echo "**Available JaCoCo Coverage Reports**" > Home.md
+          echo "" >> Home.md
+          echo "| Minecraft Version | Timestamp | Report |" >> Home.md
+          echo "|------------------|-----------|--------|" >> Home.md
+      
+          for FOLDER in $(git ls-remote --heads https://github.com/${{ github.repository }}.git gh-pages | awk '{print $2}' | sed 's|refs/heads/gh-pages||' >/dev/null; cd ../gh-pages; ls -1d */ | sed 's|/||' | sort -r); do
+            MC=$(echo "$FOLDER" | cut -d'-' -f1)
+            GAME=$(echo "$FOLDER" | cut -d'-' -f2)
+            TIME=$(echo "$FOLDER" | cut -d'-' -f3-)
+      
+            PRETTY_VERSION="${MC} – ${GAME}"
+            PRETTY_TIME="${TIME}"
+      
+            REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${FOLDER}/index.html"
+      
+            echo "| ${PRETTY_VERSION} | ${PRETTY_TIME} | [Open](${REPORT_URL}) |" >> Home.md
+          done
 
       - name: Commit & push wiki changes
         run: |
