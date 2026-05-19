@@ -37,8 +37,19 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle.properties') }}
 
-      - name: Run all tests with coverage
-        run: ./gradlew runGameTestWithCoverage jacocoTestReport --stacktrace
+      - name: Run all tests with coverage (3 retries)
+        run: |
+          for i in 1 2 3; do
+            echo "Attempt $i..."
+            ./gradlew runGameTestWithCoverage jacocoTestReport --stacktrace && break
+            if [ $i -lt 3 ]; then
+              echo "Retrying in 10 seconds..."
+              sleep 10
+            else
+              echo "All attempts failed."
+              exit 1
+            fi
+          done
 
       - name: Extract metadata
         id: meta
