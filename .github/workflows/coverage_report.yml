@@ -126,8 +126,6 @@ jobs:
           else
             echo "gh-pages exists. Checking it out."
       
-            find . -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
-      
             git fetch origin gh-pages
             git checkout gh-pages
           fi
