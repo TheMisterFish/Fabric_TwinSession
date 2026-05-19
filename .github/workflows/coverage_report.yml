@@ -100,18 +100,30 @@ jobs:
 
       - name: Initialise gh-pages branch if it doesn't exist yet
         run: |
-          if [ ! -d "gh-pages/.git" ]; then
-            mkdir -p gh-pages
-            cd gh-pages
+          cd gh-pages
+      
+          if ! git ls-remote --exit-code origin gh-pages; then
+            echo "gh-pages does not exist. Creating it."
+            rm -rf .git
+      
             git init
             git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
             git checkout --orphan gh-pages
-            git config user.name "github-actions"
-            git config user.email "github-actions@github.com"
+            git rm -rf . || true
+      
             touch .nojekyll
             git add .nojekyll
             git commit -m "Initialise gh-pages"
-            git push origin gh-pages
+      
+            git push --set-upstream origin gh-pages
+      
+          else
+            echo "gh-pages exists. Checking it out."
+            rm -rf .git
+            git init
+            git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+            git fetch origin gh-pages
+            git checkout gh-pages
           fi
 
       - name: Copy new report into gh-pages
