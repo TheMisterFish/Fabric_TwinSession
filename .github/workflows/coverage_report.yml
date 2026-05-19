@@ -139,13 +139,12 @@ jobs:
       - name: Regenerate root index.html from all existing folders
         run: |
           cd gh-pages
-
-          # Collect all report folders (directories containing an index.html), sorted newest-first
-          FOLDERS=$(find . -mindepth 2 -maxdepth 2 -name "index.html" \
+      
+          FOLDERS=$(find . -mindepth 1 -maxdepth 1 -type d \
             | sed 's|^\./||' \
-            | sed 's|/index.html||' \
+            | grep -v '^\.git$' \
             | sort -r)
-
+      
           cat > index.html <<'HTML'
           <!DOCTYPE html>
           <html lang="en">
@@ -166,16 +165,17 @@ jobs:
             <h1>JaCoCo Coverage Reports - TwinSession</h1>
             <ul>
           HTML
-
+      
           for FOLDER in $FOLDERS; do
             echo "    <li><a href=\"${FOLDER}/index.html\">${FOLDER}</a></li>" >> index.html
           done
-
+      
           cat >> index.html <<'HTML'
             </ul>
           </body>
           </html>
           HTML
+
 
       - name: Commit and push to gh-pages
         run: |
