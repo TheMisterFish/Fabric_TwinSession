@@ -208,7 +208,9 @@ jobs:
 
           REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${FOLDER}/index.html"
 
-          cat > "wiki/${PAGE}.md" <<EOF
+          mkdir -p "wiki/jacoco-reports"
+          
+          cat > "wiki/jacoco-reports/${PAGE}.md" <<EOF
           **Branch:** ${BRANCH}  
           **Commit:** ${COMMIT}  
           **Tested at:** ${TIMESTAMP}  
@@ -226,24 +228,15 @@ jobs:
         run: |
           cd wiki
       
-          echo "## Available Coverage Reports" > Home.md
+          echo "**Available Coverage Reports**" > Home.md
           echo "" >> Home.md
-          echo "| Minecraft Version | Timestamp | Report |" >> Home.md
-          echo "|------------------|-----------|--------|" >> Home.md
+          echo "| Report |" >> Home.md
+          echo "|--------|" >> Home.md
       
-          for PAGE in $(ls -1 JaCoCo-report-Mc-version-*.md | sort -r); do
-            FOLDER=$(echo "$PAGE" | sed -E 's/^JaCoCo-report-Mc-version-(.*)\.md/\1/')
-      
-            MC=$(echo "$FOLDER" | cut -d'-' -f1)
-            GAME=$(echo "$FOLDER" | cut -d'-' -f2)
-            TIME=$(echo "$FOLDER" | cut -d'-' -f3-)
-      
-            PRETTY_VERSION="${MC} – ${GAME}"
-            PRETTY_TIME="${TIME}"
-      
-            REPORT_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${FOLDER}/index.html"
-      
-            echo "| ${PRETTY_VERSION} | ${PRETTY_TIME} | [Open](${REPORT_URL}) |" >> Home.md
+          for PAGE in $(ls -1 "jacoco-reports"/*.md | sort -r); do
+            BASENAME=$(basename "$PAGE" .md)
+            URL=$(echo "jacoco-reports/${BASENAME}" | sed 's/ /%20/g')
+            echo "| [${BASENAME}](${URL}) |" >> Home.md
           done
 
       - name: Commit & push wiki changes
