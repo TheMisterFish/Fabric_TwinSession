@@ -242,11 +242,14 @@ jobs:
       - name: Commit & push wiki changes
         run: |
           PAGE="${{ needs.build.outputs.wiki_page }}"
-
+      
           cd wiki
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-
-          git add "${PAGE}.md"
+      
+          # Add the new report page AND the updated Home.md
+          git add "jacoco-reports/${PAGE}.md" Home.md
+      
           git commit -m "Coverage report: ${PAGE}" || echo "Nothing to commit"
           git push || echo "Nothing to push"
+
