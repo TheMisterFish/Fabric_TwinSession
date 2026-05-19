@@ -93,12 +93,14 @@ jobs:
           name: jacoco-report
           path: new-report/
 
-      - name: Checkout gh-pages branch
+      - name: Try to check out gh-pages
         uses: actions/checkout@v4
+        id: checkout_pages
+        continue-on-error: true
         with:
           ref: gh-pages
           path: gh-pages
-        continue-on-error: true
+          fetch-depth: 0
 
       - name: Initialise gh-pages branch if it doesn't exist yet
         run: |
