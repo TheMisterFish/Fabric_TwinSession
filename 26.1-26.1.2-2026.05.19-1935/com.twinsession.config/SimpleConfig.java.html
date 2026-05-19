@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SimpleConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fabric_TwinSession</a> &gt; <a href="index.source.html" class="el_package">com.twinsession.config</a> &gt; <span class="el_source">SimpleConfig.java</span></div><h1>SimpleConfig.java</h1><pre class="source lang-java linenums">package com.twinsession.config;
+
+/*
+ * Copyright (c) 2021 magistermaks
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+import net.fabricmc.loader.api.FabricLoader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Scanner;
+
+public class SimpleConfig {
+
+<span class="fc" id="L39">    private static final Logger LOGGER = LogManager.getLogger(&quot;SimpleConfig&quot;);</span>
+<span class="fc" id="L40">    private final HashMap&lt;String, String&gt; config = new HashMap&lt;&gt;();</span>
+    private final ConfigRequest request;
+<span class="fc" id="L42">    private boolean broken = false;</span>
+
+    public interface DefaultConfig {
+        String get( String namespace );
+
+        static String empty( String namespace ) {
+<span class="nc" id="L48">            return &quot;&quot;;</span>
+        }
+    }
+
+    public static class ConfigRequest {
+
+        private final File file;
+        private final String filename;
+        private DefaultConfig provider;
+
+<span class="fc" id="L58">        private ConfigRequest(File file, String filename ) {</span>
+<span class="fc" id="L59">            this.file = file;</span>
+<span class="fc" id="L60">            this.filename = filename;</span>
+<span class="fc" id="L61">            this.provider = DefaultConfig::empty;</span>
+<span class="fc" id="L62">        }</span>
+
+        /**
+         * Sets the default config provider, used to generate the
+         * config if it's missing.
+         *
+         * @param provider default config provider
+         * @return current config request object
+         * @see DefaultConfig
+         */
+        public ConfigRequest provider( DefaultConfig provider ) {
+<span class="fc" id="L73">            this.provider = provider;</span>
+<span class="fc" id="L74">            return this;</span>
+        }
+
+        /**
+         * Loads the config from the filesystem.
+         *
+         * @return config object
+         * @see SimpleConfig
+         */
+        public SimpleConfig request() {
+<span class="fc" id="L84">            return new SimpleConfig( this );</span>
+        }
+
+        private String getConfig() {
+<span class="fc" id="L88">            return provider.get( filename ) + &quot;\n&quot;;</span>
+        }
+
+    }
+
+    /**
+     * Creates new config request object, ideally `namespace`
+     * should be the name of the mod id of the requesting mod
+     *
+     * @param filename - name of the config file
+     * @return new config request object
+     */
+    public static ConfigRequest of( String filename ) {
+<span class="fc" id="L101">        Path path = FabricLoader.getInstance().getConfigDir();</span>
+<span class="fc" id="L102">        return new ConfigRequest( path.resolve( filename + &quot;.properties&quot; ).toFile(), filename );</span>
+    }
+
+    private void createConfig() throws IOException {
+
+        // try creating missing files
+<span class="fc" id="L108">        request.file.getParentFile().mkdirs();</span>
+<span class="fc" id="L109">        Files.createFile( request.file.toPath() );</span>
+
+        // write default config data
+<span class="fc" id="L112">        PrintWriter writer = new PrintWriter(request.file, &quot;UTF-8&quot;);</span>
+<span class="fc" id="L113">        writer.write( request.getConfig() );</span>
+<span class="fc" id="L114">        writer.close();</span>
+
+<span class="fc" id="L116">    }</span>
+
+    private void loadConfig() throws IOException {
+<span class="fc" id="L119">        Scanner reader = new Scanner( request.file );</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">        for( int line = 1; reader.hasNextLine(); line ++ ) {</span>
+<span class="fc" id="L121">            parseConfigEntry( reader.nextLine(), line );</span>
+        }
+<span class="fc" id="L123">    }</span>
+
+    private void parseConfigEntry( String entry, int line ) {
+<span class="pc bpc" id="L126" title="1 of 4 branches missed.">        if( !entry.isEmpty() &amp;&amp; !entry.startsWith( &quot;#&quot; ) ) {</span>
+<span class="fc" id="L127">            String[] parts = entry.split(&quot;=&quot;, 2);</span>
+<span class="pc bpc" id="L128" title="1 of 2 branches missed.">            if( parts.length == 2 ) {</span>
+                // Recognizes comments after a value
+<span class="fc" id="L130">                String temp = parts[1].split(&quot;#&quot;)[0];</span>
+<span class="fc" id="L131">                config.put( parts[0], temp.strip() );</span>
+<span class="fc" id="L132">            }else{</span>
+<span class="nc" id="L133">                throw new RuntimeException(&quot;Syntax error in config file on line &quot; + line + &quot;!&quot;);</span>
+            }
+        }
+<span class="fc" id="L136">    }</span>
+
+<span class="fc" id="L138">    private SimpleConfig( ConfigRequest request ) {</span>
+<span class="fc" id="L139">        this.request = request;</span>
+<span class="fc" id="L140">        String identifier = &quot;Config '&quot; + request.filename + &quot;'&quot;;</span>
+
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">        if( !request.file.exists() ) {</span>
+<span class="fc" id="L143">            LOGGER.info( identifier + &quot; is missing, generating default one...&quot; );</span>
+
+            try {
+<span class="fc" id="L146">                createConfig();</span>
+<span class="nc" id="L147">            } catch (IOException e) {</span>
+<span class="nc" id="L148">                LOGGER.error( identifier + &quot; failed to generate!&quot; );</span>
+<span class="nc" id="L149">                LOGGER.trace( e );</span>
+<span class="nc" id="L150">                broken = true;</span>
+<span class="fc" id="L151">            }</span>
+        }
+
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">        if( !broken ) {</span>
+            try {
+<span class="fc" id="L156">                loadConfig();</span>
+<span class="nc" id="L157">            } catch (Exception e) {</span>
+<span class="nc" id="L158">                LOGGER.error( identifier + &quot; failed to load!&quot; );</span>
+<span class="nc" id="L159">                LOGGER.trace( e );</span>
+<span class="nc" id="L160">                broken = true;</span>
+<span class="fc" id="L161">            }</span>
+        }
+
+<span class="fc" id="L164">    }</span>
+
+    /**
+     * Queries a value from config, returns `null` if the
+     * key does not exist.
+     *
+     * @return  value corresponding to the given key
+     * @see     SimpleConfig#getOrDefault
+     */
+    @Deprecated
+    public String get( String key ) {
+<span class="fc" id="L175">        return config.get( key );</span>
+    }
+
+    /**
+     * Returns string value from config corresponding to the given
+     * key, or the default string if the key is missing.
+     *
+     * @return  value corresponding to the given key, or the default value
+     */
+    public String getOrDefault( String key, String def ) {
+<span class="nc" id="L185">        String val = get(key);</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">        return val == null ? def : val;</span>
+    }
+
+    /**
+     * Returns integer value from config corresponding to the given
+     * key, or the default integer if the key is missing or invalid.
+     *
+     * @return  value corresponding to the given key, or the default value
+     */
+    public int getOrDefault( String key, int def ) {
+        try {
+<span class="fc" id="L197">            return Integer.parseInt( get(key) );</span>
+<span class="nc" id="L198">        } catch (Exception e) {</span>
+<span class="nc" id="L199">            return def;</span>
+        }
+    }
+
+    /**
+     * Returns boolean value from config corresponding to the given
+     * key, or the default boolean if the key is missing.
+     *
+     * @return  value corresponding to the given key, or the default value
+     */
+    public boolean getOrDefault( String key, boolean def ) {
+<span class="fc" id="L210">        String val = get(key);</span>
+<span class="pc bpc" id="L211" title="1 of 2 branches missed.">        if( val != null ) {</span>
+<span class="fc" id="L212">            return val.equalsIgnoreCase(&quot;true&quot;);</span>
+        }
+
+<span class="nc" id="L215">        return def;</span>
+    }
+
+    /**
+     * Returns double value from config corresponding to the given
+     * key, or the default string if the key is missing or invalid.
+     *
+     * @return  value corresponding to the given key, or the default value
+     */
+    public double getOrDefault( String key, double def ) {
+        try {
+<span class="nc" id="L226">            return Double.parseDouble( get(key) );</span>
+<span class="nc" id="L227">        } catch (Exception e) {</span>
+<span class="nc" id="L228">            return def;</span>
+        }
+    }
+
+    /**
+     * If any error occurred during loading or reading from the config
+     * a 'broken' flag is set, indicating that the config's state
+     * is undefined and should be discarded using `delete()`
+     *
+     * @return the 'broken' flag of the configuration
+     */
+    public boolean isBroken() {
+<span class="nc" id="L240">        return broken;</span>
+    }
+
+    /**
+     * deletes the config file from the filesystem
+     *
+     * @return true if the operation was successful
+     */
+    public boolean delete() {
+<span class="nc" id="L249">        LOGGER.warn( &quot;Config '&quot; + request.filename + &quot;' was removed from existence! Restart the game to regenerate it.&quot; );</span>
+<span class="nc" id="L250">        return request.file.delete();</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

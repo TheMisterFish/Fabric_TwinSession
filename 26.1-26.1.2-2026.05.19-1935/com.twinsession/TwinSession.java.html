@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TwinSession.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fabric_TwinSession</a> &gt; <a href="index.source.html" class="el_package">com.twinsession</a> &gt; <span class="el_source">TwinSession.java</span></div><h1>TwinSession.java</h1><pre class="source lang-java linenums">package com.twinsession;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
+import com.twinsession.config.ModConfigs;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.player.Abilities;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.storage.LevelResource;
+import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.util.*;
+
+import static net.minecraft.world.level.block.Blocks.LAVA;
+
+<span class="fc" id="L36">public class TwinSession implements ModInitializer {</span>
+    public static final String MOD_ID = &quot;twinsession&quot;;
+
+<span class="fc" id="L39">    private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);</span>
+
+<span class="fc" id="L41">    private static final Map&lt;UUID, Map&lt;Integer, UUID&gt;&gt; twinMap = new HashMap&lt;&gt;();</span>
+
+<span class="fc" id="L43">    private static final RandomSource random = RandomSource.create();</span>
+
+    @Override
+    public void onInitialize() {
+<span class="fc" id="L47">        ModConfigs.registerConfigs();</span>
+
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">        if (FabricLoader.getInstance().isModLoaded(&quot;luckperms&quot;))</span>
+<span class="nc" id="L50">            LOGGER.info(&quot;LuckPerms API is available, TwinSession will copy permissions to duplicate users.&quot;);</span>
+<span class="fc" id="L51">    }</span>
+
+    public static GameProfile createNewGameProfile(ServerPlayer sourcePlayer) {
+<span class="fc" id="L54">        GameProfile gameProfile = sourcePlayer.getGameProfile();</span>
+<span class="fc" id="L55">        UUID originalUUID = gameProfile.id();</span>
+
+<span class="fc" id="L57">        Map&lt;Integer, UUID&gt; uuidMap = twinMap.computeIfAbsent(originalUUID, key -&gt; new HashMap&lt;&gt;());</span>
+
+<span class="fc" id="L59">        int nextPosition = 1;</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">        while (uuidMap.containsKey(nextPosition)) {</span>
+<span class="nc" id="L61">            nextPosition++;</span>
+        }
+
+<span class="fc" id="L64">        String newName = StringUtils.left(nextPosition + &quot;_&quot; + gameProfile.name(), 16);</span>
+<span class="fc" id="L65">        UUID newUUID = generateUUIDFromName(newName + &quot;$&quot;);</span>
+
+<span class="fc" id="L67">        uuidMap.put(nextPosition, newUUID);</span>
+
+<span class="fc bfc" id="L69" title="All 2 branches covered.">        String nameToUse = ModConfigs.PREFIX_WITH_NUMBER ? newName : gameProfile.name();</span>
+
+<span class="fc bfc" id="L71" title="All 2 branches covered.">        if (ModConfigs.COPY_TEXTURE) {</span>
+<span class="fc" id="L72">            Multimap&lt;String, Property&gt; map = ArrayListMultimap.create();</span>
+
+<span class="fc" id="L74">            sourcePlayer.getGameProfile().properties().get(&quot;textures&quot;)</span>
+<span class="fc" id="L75">                    .forEach(property -&gt; map.put(&quot;textures&quot;, property));</span>
+
+<span class="fc" id="L77">            return new GameProfile(newUUID, nameToUse, new PropertyMap(map));</span>
+        }
+
+<span class="fc" id="L80">        return new GameProfile(newUUID, nameToUse);</span>
+    }
+
+    public static void playerJoined(@NotNull ServerPlayer joiningPlayer) {
+<span class="fc" id="L84">        joiningPlayer.level().getServer();</span>
+
+<span class="fc" id="L86">        ServerPlayer sourcePlayer = getSourcePlayer(joiningPlayer);</span>
+
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (sourcePlayer != null) {</span>
+<span class="fc" id="L89">            copyPlayerOpStatus(sourcePlayer, joiningPlayer);</span>
+<span class="fc" id="L90">            copyPlayerGamemode(sourcePlayer, joiningPlayer);</span>
+
+<span class="pc bpc" id="L92" title="2 of 4 branches missed.">            if (ModConfigs.SPAWN_NEAR_PLAYER &amp;&amp; !playerDataExists(joiningPlayer.level().getServer(), joiningPlayer.getGameProfile().id())) {</span>
+<span class="fc" id="L93">                spawnPlayerNearby(joiningPlayer, sourcePlayer);</span>
+            }
+        }
+<span class="fc" id="L96">    }</span>
+
+    public static boolean canJoin(ServerPlayer joiningPlayer) {
+<span class="fc" id="L99">        Map&lt;Integer, UUID&gt; mapEntry = twinMap.get(joiningPlayer.getUUID());</span>
+<span class="fc bfc" id="L100" title="All 2 branches covered.">        if (mapEntry == null) {</span>
+<span class="fc" id="L101">            return true;</span>
+        }
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        return mapEntry.size() + 1 &lt; ModConfigs.MAX_PLAYERS;</span>
+    }
+
+    public static void playerLeft(ServerPlayer serverPlayer) {
+<span class="fc" id="L107">        UUID playerUUID = serverPlayer.getGameProfile().id();</span>
+<span class="fc" id="L108">        List&lt;UUID&gt; keysToRemove = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L110">        twinMap.forEach((originalUUID, uuidMap) -&gt; {</span>
+<span class="fc" id="L111">            Integer positionToRemove = null;</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">            for (Map.Entry&lt;Integer, UUID&gt; entry : uuidMap.entrySet()) {</span>
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">                if (entry.getValue().equals(playerUUID)) {</span>
+<span class="fc" id="L114">                    positionToRemove = entry.getKey();</span>
+<span class="fc" id="L115">                    break;</span>
+                }
+<span class="nc" id="L117">            }</span>
+
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">            if (positionToRemove != null) {</span>
+<span class="fc" id="L120">                uuidMap.remove(positionToRemove);</span>
+
+<span class="fc bfc" id="L122" title="All 2 branches covered.">                if (uuidMap.isEmpty()) {</span>
+<span class="fc" id="L123">                    keysToRemove.add(originalUUID);</span>
+                }
+            }
+<span class="fc" id="L126">        });</span>
+
+<span class="fc" id="L128">        keysToRemove.forEach(twinMap::remove);</span>
+<span class="fc" id="L129">    }</span>
+
+    private static ServerPlayer getSourcePlayer(ServerPlayer joiningPlayer) {
+<span class="fc" id="L132">        UUID searchUUID = joiningPlayer.getGameProfile().id();</span>
+
+<span class="pc bpc" id="L134" title="1 of 2 branches missed.">        for (Map.Entry&lt;UUID, Map&lt;Integer, UUID&gt;&gt; entry : twinMap.entrySet()) {</span>
+<span class="fc" id="L135">            Map&lt;Integer, UUID&gt; uuidMap = entry.getValue();</span>
+
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">            if (uuidMap.containsValue(searchUUID)) {</span>
+<span class="fc" id="L138">                UUID originalUUID = entry.getKey();</span>
+<span class="fc" id="L139">                return joiningPlayer.level().getServer().getPlayerList().getPlayer(originalUUID);</span>
+            }
+<span class="nc" id="L141">        }</span>
+<span class="nc" id="L142">        return null;</span>
+    }
+
+    private static UUID generateUUIDFromName(String name) {
+        try {
+<span class="fc" id="L147">            MessageDigest md = MessageDigest.getInstance(&quot;MD5&quot;);</span>
+<span class="fc" id="L148">            byte[] hash = md.digest(name.getBytes(StandardCharsets.UTF_8));</span>
+
+<span class="fc" id="L150">            long mostSigBits = 0;</span>
+<span class="fc" id="L151">            long leastSigBits = 0;</span>
+
+<span class="fc bfc" id="L153" title="All 2 branches covered.">            for (int i = 0; i &lt; 8; i++) {</span>
+<span class="fc" id="L154">                mostSigBits = (mostSigBits &lt;&lt; 8) | (hash[i] &amp; 0xff);</span>
+            }
+<span class="fc bfc" id="L156" title="All 2 branches covered.">            for (int i = 8; i &lt; 16; i++) {</span>
+<span class="fc" id="L157">                leastSigBits = (leastSigBits &lt;&lt; 8) | (hash[i] &amp; 0xff);</span>
+            }
+
+<span class="fc" id="L160">            mostSigBits &amp;= ~0x000000000000F000L;</span>
+<span class="fc" id="L161">            mostSigBits |= 0x0000000000003000L;</span>
+
+<span class="fc" id="L163">            leastSigBits &amp;= ~(0xc000000000000000L);</span>
+<span class="fc" id="L164">            leastSigBits |= 0x8000000000000000L;</span>
+
+<span class="fc" id="L166">            return new UUID(mostSigBits, leastSigBits);</span>
+
+<span class="nc" id="L168">        } catch (Exception e) {</span>
+<span class="nc" id="L169">            LOGGER.error(e.getMessage(), e);</span>
+<span class="nc" id="L170">            return UUID.randomUUID();</span>
+        }
+    }
+
+    private static void copyPlayerOpStatus(ServerPlayer source, ServerPlayer target) {
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">        if (!ModConfigs.AUTO_OP) {</span>
+<span class="nc" id="L176">            return;</span>
+        }
+
+<span class="fc" id="L179">        PlayerList playerList = target.level().getServer().getPlayerList();</span>
+<span class="fc" id="L180">        NameAndId sourceNameAndId = new NameAndId(source.getGameProfile());</span>
+<span class="fc" id="L181">        NameAndId targetNameAndId = new NameAndId(target.getGameProfile());</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">        if (playerList.isOp(sourceNameAndId)) {</span>
+<span class="fc" id="L183">            playerList.op(targetNameAndId);</span>
+        }
+<span class="fc" id="L185">    }</span>
+
+    private static void copyPlayerGamemode(ServerPlayer source, ServerPlayer target) {
+<span class="fc" id="L188">        target.setGameMode(source.gameMode.getGameModeForPlayer());</span>
+<span class="fc" id="L189">    }</span>
+
+    private static boolean playerDataExists(MinecraftServer server, UUID playerUUID) {
+<span class="fc" id="L192">        Path playerDataDir = server.getWorldPath(LevelResource.PLAYER_DATA_DIR);</span>
+
+<span class="fc" id="L194">        Path playerDataFile = playerDataDir.resolve(playerUUID.toString() + &quot;.dat&quot;);</span>
+
+<span class="fc" id="L196">        return Files.exists(playerDataFile);</span>
+    }
+
+    private static void spawnPlayerNearby(ServerPlayer joiningPlayer, Player targetPlayer) {
+<span class="pc bpc" id="L200" title="1 of 2 branches missed.">        if (!(targetPlayer.level() instanceof ServerLevel serverLevel)) {</span>
+<span class="nc" id="L201">            return;</span>
+        }
+
+<span class="fc" id="L204">        Vec3 targetPos = targetPlayer.position();</span>
+<span class="pc bpc" id="L205" title="1 of 4 branches missed.">        boolean isCreativeFlying = targetPlayer.isCreative() &amp;&amp; targetPlayer.getAbilities().flying;</span>
+<span class="fc" id="L206">        boolean isOnNetherRoof = isPlayerOnNetherRoof(serverLevel, targetPos);</span>
+
+<span class="fc" id="L208">        double newX = targetPos.x;</span>
+<span class="fc" id="L209">        double newY = targetPos.y;</span>
+<span class="fc" id="L210">        double newZ = targetPos.z;</span>
+<span class="fc" id="L211">        boolean validPosition = false;</span>
+<span class="fc" id="L212">        int distanceThreshold = 3;</span>
+<span class="fc" id="L213">        int spawn_diameter = ModConfigs.SPAWN_NEAR_PLAYER_RADIUS * 2;</span>
+
+<span class="pc bpc" id="L215" title="1 of 4 branches missed.">        while (!validPosition &amp;&amp; distanceThreshold &gt;= 1) {</span>
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">            for (int attempt = 0; attempt &lt; 10; attempt++) {</span>
+                double xOffset, zOffset, distance;
+
+                do {
+<span class="fc" id="L220">                    xOffset = (random.nextDouble() - 0.5) * spawn_diameter;</span>
+<span class="fc" id="L221">                    zOffset = (random.nextDouble() - 0.5) * spawn_diameter;</span>
+<span class="fc" id="L222">                    distance = Math.sqrt(xOffset * xOffset + zOffset * zOffset);</span>
+<span class="fc bfc" id="L223" title="All 2 branches covered.">                } while (distance &lt; distanceThreshold);</span>
+
+<span class="fc" id="L225">                newX = targetPos.x + xOffset;</span>
+<span class="fc" id="L226">                newZ = targetPos.z + zOffset;</span>
+
+<span class="pc bpc" id="L228" title="1 of 2 branches missed.">                if (isCreativeFlying) {</span>
+<span class="nc" id="L229">                    double yOffset = (random.nextDouble() - 0.5) * 6;</span>
+<span class="nc" id="L230">                    newY = targetPos.y + yOffset;</span>
+<span class="nc" id="L231">                    validPosition = true;</span>
+<span class="nc" id="L232">                    break;</span>
+                } else {
+<span class="fc" id="L234">                    int potentialY = findSafeYWithinRange(serverLevel, new BlockPos((int) newX, (int) targetPos.y, (int) newZ), 3);</span>
+<span class="pc bpc" id="L235" title="1 of 2 branches missed.">                    if (potentialY != -1) {</span>
+<span class="pc bpc" id="L236" title="2 of 4 branches missed.">                        if (!isOnNetherRoof &amp;&amp; potentialY &gt; serverLevel.getLogicalHeight()) {</span>
+<span class="nc" id="L237">                            continue;</span>
+                        }
+<span class="fc" id="L239">                        newY = potentialY;</span>
+<span class="fc" id="L240">                        validPosition = true;</span>
+<span class="fc" id="L241">                        break;</span>
+                    }
+                }
+            }
+
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">            if (!validPosition) {</span>
+<span class="nc" id="L247">                distanceThreshold--;</span>
+            }
+        }
+
+<span class="pc bpc" id="L251" title="1 of 2 branches missed.">        if (!validPosition) {</span>
+<span class="nc" id="L252">            newX = targetPos.x;</span>
+<span class="nc" id="L253">            newY = targetPos.y;</span>
+<span class="nc" id="L254">            newZ = targetPos.z;</span>
+        }
+
+<span class="fc" id="L257">        joiningPlayer.teleportTo(serverLevel, newX, newY, newZ, Set.of(), joiningPlayer.getYRot(), joiningPlayer.getXRot(), true);</span>
+
+<span class="pc bpc" id="L259" title="1 of 2 branches missed.">        if (isCreativeFlying) {</span>
+<span class="nc" id="L260">            Abilities abilities = joiningPlayer.getAbilities();</span>
+<span class="nc" id="L261">            abilities.mayfly = true;</span>
+<span class="nc" id="L262">            abilities.flying = true;</span>
+<span class="nc" id="L263">            joiningPlayer.onUpdateAbilities();</span>
+        }
+<span class="fc" id="L265">    }</span>
+
+    private static int findSafeYWithinRange(ServerLevel world, BlockPos pos, int range) {
+<span class="fc" id="L268">        int minY = Math.max(world.getMinY(), pos.getY() - range);</span>
+<span class="fc" id="L269">        int maxY = Math.min(world.getMaxY() - 1, pos.getY() + range);</span>
+
+<span class="pc bpc" id="L271" title="1 of 2 branches missed.">        for (int y = maxY; y &gt;= minY; y--) {</span>
+<span class="fc" id="L272">            BlockPos checkPos = new BlockPos(pos.getX(), y, pos.getZ());</span>
+<span class="fc bfc" id="L273" title="All 2 branches covered.">            if (isSafeSpawn(world, checkPos)) {</span>
+<span class="fc" id="L274">                return y;</span>
+            }
+        }
+
+<span class="nc" id="L278">        return -1;</span>
+    }
+
+    private static boolean isSafeSpawn(ServerLevel world, BlockPos pos) {
+<span class="pc bpc" id="L282" title="1 of 2 branches missed.">        return world.getBlockState(pos).isAir() &amp;&amp;</span>
+<span class="pc bpc" id="L283" title="1 of 2 branches missed.">                world.getBlockState(pos.above()).isAir() &amp;&amp;</span>
+<span class="fc bfc" id="L284" title="All 2 branches covered.">                !world.getBlockState(pos.below()).isAir() &amp;&amp;</span>
+<span class="pc bpc" id="L285" title="1 of 2 branches missed.">                !world.getBlockState(pos.below()).is(LAVA);</span>
+    }
+
+    private static boolean isPlayerOnNetherRoof(ServerLevel world, Vec3 pos) {
+<span class="pc bpc" id="L289" title="3 of 4 branches missed.">        return world.dimensionType().hasCeiling() &amp;&amp; pos.y &gt;= world.getLogicalHeight();</span>
+    }
+
+    @VisibleForTesting
+    public static Map&lt;UUID, Map&lt;Integer, UUID&gt;&gt; getTwinMap(){
+<span class="fc" id="L294">        return twinMap;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

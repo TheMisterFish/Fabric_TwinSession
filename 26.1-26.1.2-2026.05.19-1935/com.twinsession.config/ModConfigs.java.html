@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ModConfigs.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fabric_TwinSession</a> &gt; <a href="index.source.html" class="el_package">com.twinsession.config</a> &gt; <span class="el_source">ModConfigs.java</span></div><h1>ModConfigs.java</h1><pre class="source lang-java linenums">package com.twinsession.config;
+
+import com.mojang.datafixers.util.Pair;
+
+import static com.twinsession.TwinSession.MOD_ID;
+
+<span class="nc" id="L7">public class ModConfigs {</span>
+    public static SimpleConfig CONFIG;
+    private static ModConfigProvider configs;
+
+    public static int MAX_PLAYERS;
+    public static boolean AUTO_WHITELIST;
+    public static boolean AUTO_OP;
+    public static boolean SPAWN_NEAR_PLAYER;
+    public static int SPAWN_NEAR_PLAYER_RADIUS;
+    public static boolean COPY_TEXTURE;
+    public static boolean PREFIX_WITH_NUMBER;
+
+    public static void registerConfigs() {
+<span class="fc" id="L20">        configs = new ModConfigProvider();</span>
+<span class="fc" id="L21">        createConfigs();</span>
+
+<span class="fc" id="L23">        CONFIG = SimpleConfig.of(MOD_ID).provider(configs).request();</span>
+
+<span class="fc" id="L25">        assignConfigs();</span>
+<span class="fc" id="L26">    }</span>
+
+    private static void createConfigs() {
+<span class="fc" id="L29">        configs.addKeyValuePair(new Pair&lt;&gt;(&quot;maxPlayers&quot;, 8), &quot;              Max amount of re-joins per client.&quot;);</span>
+<span class="fc" id="L30">        configs.addKeyValuePair(new Pair&lt;&gt;(&quot;autoWhitelist&quot;, true), &quot;        Automatically whitelist if whitelist is enabled.&quot;);</span>
+<span class="fc" id="L31">        configs.addKeyValuePair(new Pair&lt;&gt;(&quot;autoOp&quot;, true), &quot;               Automatically op if original client is also op.&quot;);</span>
+<span class="fc" id="L32">        configs.addKeyValuePair(new Pair&lt;&gt;(&quot;spawnNearPlayer&quot;, true), &quot;      Spawn near the player, if false new players will join at world spawn.&quot;);</span>
+<span class="fc" id="L33">        configs.addKeyValuePair(new Pair&lt;&gt;(&quot;spawnNearPlayerRadius&quot;, 10), &quot;  If spawnNearPlayer is enabled, this will set the radius on who close the player should spawn.&quot;);</span>
+<span class="fc" id="L34">        configs.addKeyValuePair(new Pair&lt;&gt;(&quot;copyTexture&quot;, true), &quot;          Copy the texture of the original player.&quot;);</span>
+<span class="fc" id="L35">        configs.addKeyValuePair(new Pair&lt;&gt;(&quot;prefixWithNumber&quot;, true), &quot;     Adds a `$_` prefix to the username (Highly recommended to keep on true)&quot;);</span>
+<span class="fc" id="L36">    }</span>
+
+    private static void assignConfigs() {
+<span class="fc" id="L39">        MAX_PLAYERS = CONFIG.getOrDefault(&quot;maxPlayers&quot;, 8);</span>
+<span class="fc" id="L40">        AUTO_WHITELIST = CONFIG.getOrDefault(&quot;autoWhitelist&quot;, true);</span>
+<span class="fc" id="L41">        AUTO_OP = CONFIG.getOrDefault(&quot;autoOp&quot;, true);</span>
+<span class="fc" id="L42">        SPAWN_NEAR_PLAYER = CONFIG.getOrDefault(&quot;spawnNearPlayer&quot;, true);</span>
+<span class="fc" id="L43">        SPAWN_NEAR_PLAYER_RADIUS = CONFIG.getOrDefault(&quot;spawnNearPlayerRadius&quot;, 10);</span>
+<span class="fc" id="L44">        COPY_TEXTURE = CONFIG.getOrDefault(&quot;copyTexture&quot;, true);</span>
+<span class="fc" id="L45">        PREFIX_WITH_NUMBER = CONFIG.getOrDefault(&quot;prefixWithNumber&quot;, true);</span>
+<span class="fc" id="L46">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

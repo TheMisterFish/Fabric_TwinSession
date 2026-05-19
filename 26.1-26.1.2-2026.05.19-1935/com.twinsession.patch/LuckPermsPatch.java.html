@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LuckPermsPatch.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Fabric_TwinSession</a> &gt; <a href="index.source.html" class="el_package">com.twinsession.patch</a> &gt; <span class="el_source">LuckPermsPatch.java</span></div><h1>LuckPermsPatch.java</h1><pre class="source lang-java linenums">package com.twinsession.patch;
+
+import net.fabricmc.loader.api.FabricLoader;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.model.user.User;
+import net.luckperms.api.node.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+import static com.twinsession.TwinSession.MOD_ID;
+
+<span class="nc" id="L16">public class LuckPermsPatch {</span>
+<span class="nc" id="L17">    private static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);</span>
+<span class="nc" id="L18">    private static boolean isLuckPermsLoaded = false;</span>
+<span class="nc" id="L19">    private static LuckPerms luckPermsApi = null;</span>
+
+    static {
+<span class="nc" id="L22">        checkLuckPermsLoaded();</span>
+<span class="nc" id="L23">    }</span>
+
+    private static void checkLuckPermsLoaded() {
+<span class="nc" id="L26">        isLuckPermsLoaded = FabricLoader.getInstance().isModLoaded(&quot;luckperms&quot;);</span>
+<span class="nc bnc" id="L27" title="All 2 branches missed.">        if (isLuckPermsLoaded) {</span>
+            try {
+<span class="nc" id="L29">                LOGGER.debug(&quot;Loading LuckPerms API&quot;);</span>
+<span class="nc" id="L30">                luckPermsApi = LuckPermsProvider.get();</span>
+<span class="nc" id="L31">            } catch (IllegalStateException e) {</span>
+<span class="nc" id="L32">                isLuckPermsLoaded = false;</span>
+<span class="nc" id="L33">                LOGGER.error(&quot;LuckPerms API is not available&quot;, e);</span>
+<span class="nc" id="L34">            }</span>
+        }
+<span class="nc" id="L36">    }</span>
+
+    public static void playerJoined(UUID sourceUUID, UUID newUUID) {
+<span class="nc bnc" id="L39" title="All 4 branches missed.">        if (!isLuckPermsLoaded || luckPermsApi == null) {</span>
+<span class="nc" id="L40">            return;</span>
+        }
+
+<span class="nc" id="L43">        CompletableFuture.runAsync(() -&gt; {</span>
+<span class="nc" id="L44">            User sourceUser = luckPermsApi.getUserManager().loadUser(sourceUUID).join();</span>
+<span class="nc" id="L45">            User newUser = luckPermsApi.getUserManager().loadUser(newUUID).join();</span>
+
+<span class="nc bnc" id="L47" title="All 2 branches missed.">            if (sourceUser == null) {</span>
+<span class="nc" id="L48">                LOGGER.error(&quot;Failed to load LuckPerms user data for original player with UUID {}&quot;, sourceUUID);</span>
+<span class="nc" id="L49">                return;</span>
+            }
+
+<span class="nc bnc" id="L52" title="All 2 branches missed.">            if (newUser == null) {</span>
+<span class="nc" id="L53">                LOGGER.error(&quot;Failed to load LuckPerms user data for duplicate player with UUID {}&quot;, newUUID);</span>
+<span class="nc" id="L54">                return;</span>
+            }
+
+<span class="nc" id="L57">            newUser.data().clear();</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">            for (Node node : sourceUser.getNodes()) {</span>
+<span class="nc" id="L59">                newUser.data().add(node);</span>
+<span class="nc" id="L60">            }</span>
+
+<span class="nc" id="L62">            newUser.setPrimaryGroup(sourceUser.getPrimaryGroup());</span>
+
+<span class="nc" id="L64">            luckPermsApi.getUserManager().saveUser(newUser);</span>
+<span class="nc" id="L65">        }).exceptionally(throwable -&gt; {</span>
+<span class="nc" id="L66">            LOGGER.error(&quot;Error while copying LuckPerms permissions&quot;, throwable);</span>
+<span class="nc" id="L67">            return null;</span>
+        });
+<span class="nc" id="L69">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
