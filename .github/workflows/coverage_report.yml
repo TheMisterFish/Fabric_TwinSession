@@ -240,7 +240,7 @@ jobs:
       
           for PAGE in $(ls -1 "jacoco-reports"/*.md | sort -r); do
             BASENAME=$(basename "$PAGE" .md)
-            URL=$(echo "jacoco-reports/${BASENAME}" | sed 's/ /%20/g')
+            URL=$(echo "${BASENAME}" | sed 's/ /%20/g')
             echo "| [${BASENAME}](${URL}) |" >> Home.md
           done
 
